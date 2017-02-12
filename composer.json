@@ -1,0 +1,34 @@
+{
+    "name": "ridzhi/readline",
+    "description": "native readline implementation",
+    "keywords": ["readline", "autocomplete"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Danila Stivrinsh",
+            "email": "danilaridzhi@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ridzhi\\Readline\\": [
+                "src/"
+            ]
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ridzhi\\Readline\\Tests\\": [
+                "tests/"
+            ]
+        }
+    },
+    "require": {
+        "php": ">=7.0",
+        "hoa/console": " 3.17.*",
+        "ridzhi/readline-info": "^0.1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.0"
+    }
+}
