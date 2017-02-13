@@ -3,6 +3,12 @@
 namespace Ridzhi\Readline;
 
 
+/**
+ * Logic representation of CLI input
+ *
+ * Class Buffer
+ * @package Ridzhi\Readline
+ */
 class Buffer
 {
 
@@ -34,6 +40,16 @@ class Buffer
     {
         $this->input = '';
         $this->pos = 0;
+    }
+
+    /**
+     * TODO mb remain only reverse version
+     * @param bool $reverse
+     * @return int
+     */
+    public function getPos(bool $reverse = false): int
+    {
+        return ($reverse) ? $this->getLength() - $this->pos : $this->pos;
     }
 
     /**
@@ -95,16 +111,6 @@ class Buffer
             $this->pos = $max;
             $this->insert(str_repeat(" ", $offset));
         }
-    }
-
-    /**
-     * TODO mb remain only reverse version
-     * @param bool $reverse
-     * @return int
-     */
-    public function getPos(bool $reverse = false): int
-    {
-        return ($reverse) ? $this->getLength() - $this->pos : $this->pos;
     }
 
     public function removeChar(bool $left = true)
