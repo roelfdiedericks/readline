@@ -185,7 +185,7 @@ class Readline
 
     protected function handlerTab(Readline $self)
     {
-        $input = $self->buffer->getCurrent();
+        $input = $self->buffer->getInputCurrent();
         $info = Info::create($input);
 
         if ($info['current'] !== '') {
@@ -253,7 +253,7 @@ class Readline
     protected function processComplete()
     {
         $value = $this->window->getValue();
-        $info = Info::create($this->buffer->getCurrent());
+        $info = Info::create($this->buffer->getInputCurrent());
         $completion = substr($value, strlen($info['current']));
         $this->buffer->insert($completion);
 
@@ -279,7 +279,7 @@ class Readline
      */
     protected function getDict(): array
     {
-        return $this->completer->complete($this->buffer->getCurrent());
+        return $this->completer->complete($this->buffer->getInputCurrent());
     }
 
     /**

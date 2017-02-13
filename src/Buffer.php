@@ -55,14 +55,14 @@ class Buffer
     /**
      * @return string
      */
-    public function getCurrent(): string
+    public function getInputCurrent(): string
     {
         return substr($this->input, 0, $this->pos);
     }
 
     public function insert(string $value)
     {
-        $this->input = implode("", [$this->getCurrent(), $value, substr($this->input, $this->pos)]);
+        $this->input = implode("", [$this->getInputCurrent(), $value, $this->getInputNext()]);
         $this->cursorNext(strlen($value));
     }
 
@@ -111,7 +111,7 @@ class Buffer
     {
         if ($left) {
             if (!$this->isEmpty()) {
-                $this->input =  substr($this->input, 0, $this->pos - 1) . substr($this->input, $this->pos);
+                $this->input =  substr($this->input, 0, $this->pos - 1) . $this->getInputNext();
                 $this->cursorPrev();
             }
         } elseif(!$this->isEnd()) {
@@ -121,7 +121,11 @@ class Buffer
 
     }
 
-    protected function getLength()
+
+    /**
+     * @return int
+     */
+    protected function getLength(): int
     {
         return strlen($this->input);
     }
@@ -142,4 +146,9 @@ class Buffer
         return $this->pos === $this->getLength();
     }
 
+    protected function getInputNext()
+    {
+        return substr($this->input, $this->pos);
+    }
+    
 }
