@@ -153,7 +153,10 @@ class Buffer
         return $this->pos === $this->getLength();
     }
 
-    protected function getInputNext()
+    /**
+     * @return string
+     */
+    protected function getInputNext(): string
     {
         return substr($this->input, $this->pos);
     }
