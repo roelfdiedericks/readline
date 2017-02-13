@@ -106,7 +106,7 @@ class Buffer
      */
     public function getPos(bool $reverse = false): int
     {
-        return ($reverse) ? strlen($this->input) - $this->pos : $this->pos;
+        return ($reverse) ? $this->getLength() - $this->pos : $this->pos;
     }
 
     public function removeChar(bool $left = true)
