@@ -66,7 +66,7 @@ class Readline
 
             $this->printBuffer();
             $this->window->show();
-            $input = $this->input->read(5);
+            $input = $this->input->read($maxUsageLength = 5);
             $this->window->hide();
 
 //            $segments = str_split($char);
@@ -76,10 +76,6 @@ class Readline
 //            }
 //
 //            echo "-----------------------";
-//            /**
-//             * END \033[F
-//             * HOME \033[H
-//             */
 //            continue;
 
             if ($this->tryResolveAsServiceCommand($input)) {
