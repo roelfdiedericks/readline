@@ -64,7 +64,7 @@ class Buffer
 
     public function insert(string $value)
     {
-        $this->input = implode("", [substr($this->input, 0, $this->pos), $value, substr($this->input, $this->pos)]);
+        $this->input = implode("", [$this->getCurrent(), $value, substr($this->input, $this->pos)]);
         $this->cursorNext(strlen($value));
     }
 
