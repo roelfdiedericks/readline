@@ -62,7 +62,7 @@ class Buffer
 
     public function insert(string $value)
     {
-        $this->input = implode("", [$this->getInputCurrent(), $value, $this->getInputNext()]);
+        $this->insertToInput($value);
         $this->cursorNext(strlen($value));
     }
 
@@ -121,6 +121,13 @@ class Buffer
 
     }
 
+    /**
+     * @param string $value
+     */
+    protected function insertToInput(string $value)
+    {
+        $this->input = implode("", [$this->getInputCurrent(), $value, $this->getInputNext()]);
+    }
 
     /**
      * @return int
