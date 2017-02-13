@@ -6,8 +6,6 @@ namespace Ridzhi\Readline;
 class Buffer
 {
 
-    const EMPTY = '';
-
     /**
      * @var int
      */
@@ -17,7 +15,7 @@ class Buffer
     /**
      * @var string
      */
-    protected $input = self::EMPTY;
+    protected $input = '';
 
     /**
      * @var string
@@ -34,7 +32,7 @@ class Buffer
 
     public function reset()
     {
-        $this->input = self::EMPTY;
+        $this->input = '';
         $this->pos = 0;
     }
 
@@ -133,7 +131,7 @@ class Buffer
      */
     protected function isEmpty(): bool
     {
-        return $this->input === self::EMPTY;
+        return $this->input === '';
     }
 
     /**
