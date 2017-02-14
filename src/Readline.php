@@ -32,7 +32,7 @@ class Readline
     protected $output;
 
     /**
-     * @var Window
+     * @var Dropdown
      */
     protected $window;
 
@@ -52,7 +52,7 @@ class Readline
         $this->buffer = new Buffer();
         $this->input = new Input();
         $this->output = new Output();
-        $this->window = new Window($this->output, 4);
+        $this->window = new Dropdown($this->output, 4);
 
         $this->initKeyHandlers();
     }

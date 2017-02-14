@@ -6,7 +6,7 @@ namespace Ridzhi\Readline;
 use Hoa\Console\Cursor;
 use Hoa\Console\Output;
 
-class Window
+class Dropdown
 {
 
     /**
