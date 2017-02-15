@@ -6,6 +6,9 @@ namespace Ridzhi\Readline;
 use Hoa\Console\Cursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
+use Ridzhi\Readline\Dropdown\Dropdown;
+use Ridzhi\Readline\Dropdown\DropdownInterface;
+use Ridzhi\Readline\Dropdown\Style;
 
 
 class Readline
@@ -34,7 +37,7 @@ class Readline
     /**
      * @var Dropdown
      */
-    protected $window;
+    protected $dropdown;
 
     /**
      * @var array
@@ -47,27 +50,28 @@ class Readline
     protected $pressEnter = false;
 
 
-    public function __construct()
+    public function __construct(DropdownInterface $dropdown)
     {
+
         $this->buffer = new Buffer();
         $this->input = new Input();
         $this->output = new Output();
-        $this->window = new Dropdown($this->output, 4);
+        $this->dropdown = $dropdown;
 
         $this->initKeyHandlers();
     }
 
     public function read(string $prompt): string
     {
-        $this->resetWindow();
+        $this->updateDropdown();
         $this->buffer->setPrompt($prompt);
 
         do {
 
             $this->printBuffer();
-            $this->window->show();
+            $this->showDropdown();
             $input = $this->input->read($maxUsageLength = 5);
-            $this->window->hide();
+            $this->hideDropdown();
 
 //            $segments = str_split($char);
 
@@ -89,7 +93,7 @@ class Readline
 
             //char processing
             $this->buffer->insert($input);
-            $this->resetWindow();
+            $this->updateDropdown();
 
         } while (!$this->pressEnter);
 
@@ -159,13 +163,13 @@ class Readline
     {
         $self->buffer->insert("\"\"");
         $self->buffer->cursorPrev();
-        $self->resetWindow();
+        $self->updateDropdown();
     }
 
     protected function handlerBackspace(Readline $self)
     {
         $self->buffer->removeChar();
-        $self->resetWindow();
+        $self->updateDropdown();
     }
 
     protected function handlerDelete(Readline $self)
@@ -200,7 +204,7 @@ class Readline
 
     protected function handlerEnter(Readline $self)
     {
-        if ($self->window->isActive()) {
+        if ($self->dropdown->isActive()) {
             $self->processComplete();
         } else {
             $self->pressEnter = true;
@@ -209,31 +213,47 @@ class Readline
 
     protected function handlerArrowUp(Readline $self)
     {
-        $self->window->scrollUp();
+        $self->dropdown->scrollUp();
     }
 
     protected function handlerArrowRight(Readline $self)
     {
         $self->buffer->cursorNext();
-        $self->resetWindow();
+        $self->updateDropdown();
     }
 
     //TODO для скрола добавить чеки что окно что то покащывпет
     protected function handlerArrowDown(Readline $self)
     {
-        $self->window->scrollDown();
+        $self->dropdown->scrollDown();
     }
 
     protected function handlerArrowLeft(Readline $self)
     {
         $self->buffer->cursorPrev();
-        $self->resetWindow();
+        $self->updateDropdown();
     }
 
-    protected function resetWindow()
+    protected function updateDropdown()
     {
-        $this->window->loadContent($this->getDict());
+        $this->dropdown->setContent($this->getDict());
     }
+
+    protected function showDropdown()
+    {
+        Cursor::save();
+        Cursor::move('down');
+
+        $this->output->writeString($this->dropdown->getView());
+
+        Cursor::restore();
+    }
+
+    protected function hideDropdown()
+    {
+        Cursor::clear("down");
+    }
+
 
     /**
      * @param string $char
@@ -252,7 +272,7 @@ class Readline
 
     protected function processComplete()
     {
-        $value = $this->window->getValue();
+        $value = $this->dropdown->getSelect();
         $info = Info::create($this->buffer->getInputCurrent());
         $completion = substr($value, strlen($info['current']));
         $this->buffer->insert($completion);
@@ -263,7 +283,7 @@ class Readline
             $this->buffer->cursorNext();
         }
 
-        $this->resetWindow();
+        $this->updateDropdown();
     }
 
     protected function printBuffer()

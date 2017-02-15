@@ -56,21 +56,21 @@ class TestCompleter implements CompleteInterface
     public function getCommands()
     {
         return [
-            'asset/compress',
-            'asset/template',
-            'cache/flush',
-            'cache/flush-all',
-            'cache/flush-schema',
-            'cache/index',
-            'fixture/load',
-            'fixture/unload',
-            'help/index',
-            'message/config',
-            'message/config-template',
-            'message/extract',
-            'migrate/create',
-            'migrate/down',
-            'migrate/history',
+            'asset/compress',//1
+            'asset/template',//2
+            'cache/flush',//3
+            'cache/flush-all',//4
+            'cache/flush-schema',//5
+            'cache/index',//6
+            'fixture/load',//7
+            'fixture/unload',//8
+            'help/index',//9
+            'message/config',//10
+            'message/config-template',//11
+            'message/extract',//12
+            'migrate/create',//13
+            'migrate/down',//14
+            'migrate/history',//15
             'migrate/mark',
             'migrate/new',
             'migrate/redo',

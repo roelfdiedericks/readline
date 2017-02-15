@@ -1,16 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ridzhi
- * Date: 15.02.17
- * Time: 2:05
- */
 
 namespace Ridzhi\Readline\Tests;
 
 
 use PHPUnit\Framework\TestCase;
-use Ridzhi\Readline\Dropdown;
+use Ridzhi\Readline\Dropdown\Dropdown;
 
 
 class DropdownTest extends TestCase
