@@ -97,6 +97,8 @@ class Readline
 
         } while (!$this->pressEnter);
 
+        $this->pressEnter = false;
+
         $line = $this->buffer->getInput();
         $this->buffer->reset();
 
