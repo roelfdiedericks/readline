@@ -108,11 +108,6 @@ class Dropdown implements DropdownInterface
     public function setContent(array $content)
     {
         $this->resetScrolling();
-
-        if (empty($content)) {
-            return;
-        }
-
         $this->content = array_values($content);
         $this->count = count($content);
     }
