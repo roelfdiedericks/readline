@@ -73,15 +73,15 @@ class Readline
             $input = $this->input->read($maxUsageLength = 5);
             $this->hideDropdown();
 
-//            $segments = str_split($char);
-
+//            $segments = str_split($input);
+//
 //            foreach ($segments as $segment) {
 //                echo "CHar code:" . ord($segment) . PHP_EOL;
 //            }
 //
 //            echo "-----------------------";
 //            continue;
-
+//
             if ($this->tryResolveAsServiceCommand($input)) {
                 continue;
             }
@@ -133,6 +133,9 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerBackspace() */
         $this->registerCoreKeyHandler(127, 'handlerBackspace');
 
+        /** @uses \Ridzhi\Readline\Readline::handlerEscape() */
+        $this->registerCoreKeyHandler("\033", 'handlerEscape');
+
         /** @uses \Ridzhi\Readline\Readline::handlerDelete() */
         $this->registerCoreKeyHandler("\033[3~", 'handlerDelete');
 
@@ -157,6 +160,13 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerQuotes() */
         $this->registerCoreKeyHandler("\"", "handlerQuotes");
 
+    }
+
+    protected function handlerEscape(Readline $self)
+    {
+        if ($self->dropdown->isActive()) {
+            $self->dropdown->resetScrolling();
+        }
     }
 
     protected function handlerQuotes(Readline $self)

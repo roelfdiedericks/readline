@@ -7,7 +7,10 @@ interface DropdownInterface
 {
 
     public function scrollDown();
+
     public function scrollUp();
+
+    public function resetScrolling();
 
     public function isActive(): bool;
 

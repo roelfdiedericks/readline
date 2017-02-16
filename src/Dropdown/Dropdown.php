@@ -159,7 +159,7 @@ class Dropdown implements DropdownInterface
         return $output;
     }
 
-    protected function resetScrolling()
+    public function resetScrolling()
     {
         $this->isActive = false;
         $this->isReverse = false;
