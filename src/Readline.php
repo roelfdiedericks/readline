@@ -105,11 +105,18 @@ class Readline
         return $line;
     }
 
+    /**
+     * @param CompleteInterface $completer
+     */
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
     }
 
+    /**
+     * @param $value
+     * @param callable $handler
+     */
     public function registerKeyHandler($value, Callable $handler)
     {
         $this->keyHandlers[$value] = $handler;
