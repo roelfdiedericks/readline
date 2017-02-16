@@ -8,7 +8,6 @@ use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\DropdownInterface;
-use Ridzhi\Readline\Dropdown\Style;
 
 
 class Readline
@@ -45,6 +44,11 @@ class Readline
     protected $keyHandlers;
 
     /**
+     * @var History
+     */
+    protected $history;
+
+    /**
      * @var bool
      */
     protected $pressEnter = false;
@@ -52,11 +56,11 @@ class Readline
 
     public function __construct(DropdownInterface $dropdown)
     {
-
+        $this->dropdown = $dropdown;
         $this->buffer = new Buffer();
+        $this->history = new History();
         $this->input = new Input();
         $this->output = new Output();
-        $this->dropdown = $dropdown;
 
         $this->initKeyHandlers();
     }
@@ -98,8 +102,8 @@ class Readline
         } while (!$this->pressEnter);
 
         $this->pressEnter = false;
-
         $line = $this->buffer->getInput();
+        $this->history->add($line);
         $this->buffer->reset();
 
         return $line;
@@ -142,6 +146,12 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerBackspace() */
         $this->registerCoreKeyHandler(127, 'handlerBackspace');
 
+        /** @uses \Ridzhi\Readline\Readline::handlerPageUp() */
+        $this->registerCoreKeyHandler("\033[5~", 'handlerPageUp');
+
+        /** @uses \Ridzhi\Readline\Readline::handlerPageDown() */
+        $this->registerCoreKeyHandler("\033[6~", 'handlerPageDown');
+
         /** @uses \Ridzhi\Readline\Readline::handlerEscape() */
         $this->registerCoreKeyHandler("\033", 'handlerEscape');
 
@@ -182,6 +192,22 @@ class Readline
     {
         $self->buffer->insert("\"\"");
         $self->buffer->cursorPrev();
+        $self->updateDropdown();
+    }
+
+    protected function handlerPageUp(Readline $self)
+    {
+        $prev = $self->history->prev();
+        $self->buffer->reset();
+        $self->buffer->insert($prev);
+        $self->updateDropdown();
+    }
+
+    protected function handlerPageDown(Readline $self)
+    {
+        $next = $self->history->next();
+        $self->buffer->reset();
+        $self->buffer->insert($next);
         $self->updateDropdown();
     }
 
