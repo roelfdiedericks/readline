@@ -6,6 +6,7 @@ namespace Ridzhi\Readline;
 use Hoa\Console\Cursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
+use Hoa\Console\Window;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\DropdownInterface;
 
@@ -70,9 +71,11 @@ class Readline
         $this->updateDropdown();
         $this->buffer->setPrompt($prompt);
 
+        list($startX, $startY) = array_values(Cursor::getPosition());
+
         do {
 
-            $this->printBuffer();
+            $this->printBuffer($startX, $startY);
             $this->showDropdown();
             $input = $this->input->read($maxUsageLength = 5);
             $this->hideDropdown();
@@ -331,12 +334,21 @@ class Readline
         $this->updateDropdown();
     }
 
-    protected function printBuffer()
+    protected function printBuffer(int $x, int $y)
     {
-        Cursor::clear('line');
-        //after this cursor at the end of line
+        $width = Window::getSize()['x'];
+        $pos = $this->buffer->getPos();
+
+        $offsetY = floor($pos / $width);
+        $offsetX = $pos - ($offsetY * $width);
+
+        Cursor::hide();
+        Cursor::moveTo($x, $y);
+        Cursor::clear("down");
         $this->output->writeString($this->buffer->getPrompt() . $this->buffer->getInput());
-        Cursor::move("left", $this->buffer->getPos(true));
+
+        Cursor::moveTo($x + $offsetX, $y + $offsetY);
+        Cursor::show();
     }
 
     /**

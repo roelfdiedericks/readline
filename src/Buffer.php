@@ -17,7 +17,6 @@ class Buffer
      */
     protected $pos = 0;
 
-
     /**
      * @var string
      */
@@ -43,13 +42,11 @@ class Buffer
     }
 
     /**
-     * TODO mb remain only reverse version
-     * @param bool $reverse
      * @return int
      */
-    public function getPos(bool $reverse = false): int
+    public function getPos(): int
     {
-        return ($reverse) ? $this->getLength() - $this->pos : $this->pos;
+        return strlen($this->prompt) + $this->pos;
     }
 
     /**
