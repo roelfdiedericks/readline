@@ -6,7 +6,6 @@ namespace Ridzhi\Readline;
 use Hoa\Console\Cursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
-use Hoa\Console\Window;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\DropdownInterface;
 
@@ -74,9 +73,9 @@ class Readline
 
         do {
             $this->buffer->output($pos['x'], $pos['y']);
-            $this->showDropdown();
+            $this->dropdown->show();
             $input = $this->input->read($maxUsageLength = 5);
-            $this->hideDropdown();
+            $this->dropdown->hide();
 
 //            $segments = str_split($input);
 //
@@ -284,22 +283,6 @@ class Readline
     {
         $this->dropdown->setContent($this->getDict());
     }
-
-    protected function showDropdown()
-    {
-        Cursor::save();
-        Cursor::move('down');
-
-        $this->output->writeString($this->dropdown->getView());
-
-        Cursor::restore();
-    }
-
-    protected function hideDropdown()
-    {
-        Cursor::clear("down");
-    }
-
 
     /**
      * @param string $char

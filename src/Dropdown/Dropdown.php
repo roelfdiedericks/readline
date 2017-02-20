@@ -3,12 +3,19 @@
 namespace Ridzhi\Readline\Dropdown;
 
 
+use Hoa\Console\Cursor;
+use Hoa\Stream\IStream\Out;
 use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
 
 class Dropdown implements DropdownInterface
 {
 
     const POS_START = 0;
+
+    /**
+     * @var Out
+     */
+    protected $output;
 
     /**
      * @var StyleInterface
@@ -52,17 +59,35 @@ class Dropdown implements DropdownInterface
 
     /**
      * Dropdown constructor.
+     * @param Out $out
      * @param int $height
      * @param StyleInterface|null $style
      */
-    function __construct(int $height = 7, StyleInterface $style = null)
+    function __construct(Out $out, int $height = 7, StyleInterface $style = null)
     {
+        $this->output = $out;
+
         if ($style === null) {
             $style = new DefaultTheme();
         }
 
         $this->height = $height;
         $this->style = $style;
+    }
+
+    public function show()
+    {
+        Cursor::save();
+        Cursor::move('down');
+
+        $this->output->writeString($this->getView());
+
+        Cursor::restore();
+    }
+
+    public function hide()
+    {
+        Cursor::clear("down");
     }
 
     public function scrollUp()
