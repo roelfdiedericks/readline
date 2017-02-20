@@ -1,6 +1,9 @@
 <?php
 
 namespace Ridzhi\Readline;
+use Hoa\Console\Cursor;
+use Hoa\Console\Window;
+use Hoa\Stream\IStream\Out;
 
 
 /**
@@ -11,6 +14,11 @@ namespace Ridzhi\Readline;
  */
 class Buffer
 {
+
+    /**
+     * @var Out
+     */
+    protected $output;
 
     /**
      * @var int
@@ -28,11 +36,34 @@ class Buffer
     protected $prompt = '';
 
     /**
+     * Buffer constructor.
+     * @param Out $output
+     */
+    public function __construct(Out $output)
+    {
+        $this->output = $output;
+    }
+
+    /**
      * @param string $prompt
      */
     public function setPrompt(string $prompt)
     {
         $this->prompt = $prompt;
+    }
+
+    public function output(int $x, int $y)
+    {
+        list($newX, $newY) = $this->getTerminalPos($x, $y);
+
+        Cursor::hide();
+        Cursor::moveTo($x, $y);
+        Cursor::clear("down");
+
+        $this->output->writeString($this->getPrompt() . $this->getInput());
+
+        Cursor::moveTo($newX, $newY);
+        Cursor::show();
     }
 
     public function reset()
@@ -122,6 +153,17 @@ class Buffer
             $this->removeChar();
         }
 
+    }
+
+    protected function getTerminalPos(int $x, int $y): array
+    {
+        $width = Window::getSize()['x'];
+        $pos = $this->getPos();
+
+        $offsetY = floor($pos / $width);
+        $offsetX = $pos - ($offsetY * $width);
+
+        return [$x + $offsetX, $y + $offsetY];
     }
 
     /**

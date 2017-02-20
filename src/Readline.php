@@ -57,11 +57,11 @@ class Readline
 
     public function __construct(DropdownInterface $dropdown)
     {
+        $this->output = new Output();
         $this->dropdown = $dropdown;
-        $this->buffer = new Buffer();
+        $this->buffer = new Buffer($this->output);
         $this->history = new History();
         $this->input = new Input();
-        $this->output = new Output();
 
         $this->initKeyHandlers();
     }
@@ -70,12 +70,10 @@ class Readline
     {
         $this->updateDropdown();
         $this->buffer->setPrompt($prompt);
-
-        list($startX, $startY) = array_values(Cursor::getPosition());
+        $pos = Cursor::getPosition();
 
         do {
-
-            $this->printBuffer($startX, $startY);
+            $this->buffer->output($pos['x'], $pos['y']);
             $this->showDropdown();
             $input = $this->input->read($maxUsageLength = 5);
             $this->hideDropdown();
@@ -332,23 +330,6 @@ class Readline
         }
 
         $this->updateDropdown();
-    }
-
-    protected function printBuffer(int $x, int $y)
-    {
-        $width = Window::getSize()['x'];
-        $pos = $this->buffer->getPos();
-
-        $offsetY = floor($pos / $width);
-        $offsetX = $pos - ($offsetY * $width);
-
-        Cursor::hide();
-        Cursor::moveTo($x, $y);
-        Cursor::clear("down");
-        $this->output->writeString($this->buffer->getPrompt() . $this->buffer->getInput());
-
-        Cursor::moveTo($x + $offsetX, $y + $offsetY);
-        Cursor::show();
     }
 
     /**
