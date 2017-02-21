@@ -3,7 +3,7 @@
 namespace Ridzhi\Readline\Dropdown;
 
 
-interface StyleInterface
+interface ThemeInterface
 {
 
     /**

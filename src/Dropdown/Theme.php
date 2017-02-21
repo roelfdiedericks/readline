@@ -10,7 +10,7 @@ namespace Ridzhi\Readline\Dropdown;
  * Class DropdownStyle
  * @package Ridzhi\Readline
  */
-class Style implements StyleInterface
+class Theme implements ThemeInterface
 {
 
     /**

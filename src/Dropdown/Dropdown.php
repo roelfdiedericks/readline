@@ -5,7 +5,7 @@ namespace Ridzhi\Readline\Dropdown;
 
 use Hoa\Console\Cursor;
 use Hoa\Stream\IStream\Out;
-use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
+
 
 class Dropdown implements DropdownInterface
 {
@@ -13,17 +13,17 @@ class Dropdown implements DropdownInterface
     const POS_START = 0;
 
     /**
-     * @var Out
+     * @var Out Stream
      */
     protected $output;
 
     /**
-     * @var StyleInterface
+     * @var ThemeInterface
      */
-    protected $style;
+    protected $theme;
 
     /**
-     * @var int
+     * @var int height of dropdown
      */
     protected $height;
 
@@ -33,7 +33,7 @@ class Dropdown implements DropdownInterface
     protected $content = [];
 
     /**
-     * @var int
+     * @var int content size
      */
     protected $count;
 
@@ -43,36 +43,31 @@ class Dropdown implements DropdownInterface
     protected $pos = self::POS_START;
 
     /**
-     * @var int
+     * @var int dropdown's starting position
      */
     protected $offset = 0;
 
     /**
-     * @var bool If scrolling first -> last
+     * @var bool if scrolling first -> last
      */
     protected $isReverse = false;
 
     /**
-     * @var bool
+     * @var bool if select someone
      */
     protected $isActive = false;
 
     /**
      * Dropdown constructor.
      * @param Out $out
+     * @param ThemeInterface $theme
      * @param int $height
-     * @param StyleInterface|null $style
      */
-    function __construct(Out $out, int $height = 7, StyleInterface $style = null)
+    function __construct(Out $out, ThemeInterface $theme, int $height)
     {
         $this->output = $out;
-
-        if ($style === null) {
-            $style = new DefaultTheme();
-        }
-
+        $this->theme = $theme;
         $this->height = $height;
-        $this->style = $style;
     }
 
     public function show()
@@ -169,10 +164,10 @@ class Dropdown implements DropdownInterface
         $scrollPos = $this->getScrollPos();
 
         foreach ($dict as $key => $word) {
-            $textStyle = (!$this->isActive() || $key !== $posRelative) ? $this->style->getText() : $this->style->getTextActive();
+            $textStyle = (!$this->isActive() || $key !== $posRelative) ? $this->theme->getText() : $this->theme->getTextActive();
             $line = $this->getViewItem($word, $width);
             $output .= self::ansiFormat($line, $textStyle);
-            $scrollbarStyle = ($key !== $scrollPos) ? $this->style->getScrollbar() : $this->style->getSlider();
+            $scrollbarStyle = ($key !== $scrollPos) ? $this->theme->getScrollbar() : $this->theme->getSlider();
             $output .= self::ansiFormat($scrollbar, $scrollbarStyle) . $lf;
         }
 

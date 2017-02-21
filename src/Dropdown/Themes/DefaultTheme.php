@@ -3,9 +3,9 @@
 namespace Ridzhi\Readline\Dropdown\Themes;
 
 
-use Ridzhi\Readline\Dropdown\StyleInterface;
+use Ridzhi\Readline\Dropdown\ThemeInterface;
 
-class DefaultTheme implements StyleInterface
+class DefaultTheme implements ThemeInterface
 {
 
     /**

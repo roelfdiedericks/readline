@@ -7,7 +7,8 @@ use Hoa\Console\Cursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Ridzhi\Readline\Dropdown\Dropdown;
-use Ridzhi\Readline\Dropdown\DropdownInterface;
+use Ridzhi\Readline\Dropdown\ThemeInterface;
+use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
 
 
 class Readline
@@ -27,11 +28,6 @@ class Readline
      * @var Input
      */
     protected $input;
-
-    /**
-     * @var Output
-     */
-    protected $output;
 
     /**
      * @var Dropdown
@@ -54,11 +50,20 @@ class Readline
     protected $pressEnter = false;
 
 
-    public function __construct(DropdownInterface $dropdown)
+    /**
+     * Readline constructor.
+     * @param ThemeInterface|null $theme
+     * @param int $height
+     */
+    public function __construct(ThemeInterface $theme = null, int $height = 7)
     {
-        $this->output = new Output();
-        $this->dropdown = $dropdown;
-        $this->buffer = new Buffer($this->output);
+        if ($theme === null) {
+            $theme = new DefaultTheme();
+        }
+
+        $output = new Output();
+        $this->dropdown = new Dropdown($output, $theme, $height);
+        $this->buffer = new Buffer($output);
         $this->history = new History();
         $this->input = new Input();
 
@@ -115,6 +120,14 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
+    }
+
+    /**
+     * @return Dropdown
+     */
+    public function getDropdown(): Dropdown
+    {
+        return $this->dropdown;
     }
 
     /**
