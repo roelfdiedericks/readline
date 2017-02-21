@@ -4,6 +4,7 @@ namespace Ridzhi\Readline\Dropdown;
 
 
 use Hoa\Console\Cursor;
+use Hoa\Console\Window;
 use Hoa\Stream\IStream\Out;
 
 
@@ -72,12 +73,28 @@ class Dropdown implements DropdownInterface
 
     public function show()
     {
+        $dict = $this->getCurrentDict();
+
+        if (empty($dict)) {
+            return;
+        }
+
+        list($view, $width) = $this->getView($dict);
+
+        Cursor::hide();
         Cursor::save();
         Cursor::move('down');
 
-        $this->output->writeString($this->getView());
+        $diff = Cursor::getPosition()['x'] + $width - Window::getSize()['x'];
+
+        if ($diff > 0) {
+            Cursor::move('left', $diff);
+        }
+
+        $this->output->writeString($view);
 
         Cursor::restore();
+        Cursor::show();
     }
 
     public function hide()
@@ -142,20 +159,22 @@ class Dropdown implements DropdownInterface
         return $this->content[$this->getPosRelative()];
     }
 
+    public function resetScrolling()
+    {
+        $this->isActive = false;
+        $this->isReverse = false;
+        $this->pos = 0;
+        $this->offset = 0;
+    }
+
     /**
-     * @return string
+     * @param array $dict
+     * @return array [view, lineWidth]
      */
-    public function getView(): string
+    protected function getView(array $dict): array
     {
         $output = '';
-
-        if (empty($this->content)) {
-            return $output;
-        }
-
-        $dict = $this->getSlice();
         $width = max(array_map('mb_strlen', $dict));
-
         $scrollbar = ' ';
         $lineWidth = strlen($this->getViewItem('', $width) . $scrollbar);
         $lf = $this->getLF($lineWidth);
@@ -171,15 +190,7 @@ class Dropdown implements DropdownInterface
             $output .= self::ansiFormat($scrollbar, $scrollbarStyle) . $lf;
         }
 
-        return $output;
-    }
-
-    public function resetScrolling()
-    {
-        $this->isActive = false;
-        $this->isReverse = false;
-        $this->pos = 0;
-        $this->offset = 0;
+        return [$output, $lineWidth];
     }
 
     /**
@@ -218,8 +229,12 @@ class Dropdown implements DropdownInterface
     /**
      * @return array
      */
-    protected function getSlice(): array
+    protected function getCurrentDict(): array
     {
+        if (empty($this->content)) {
+            return [];
+        }
+
         return array_slice($this->content, $this->offset, $this->height);
     }
 

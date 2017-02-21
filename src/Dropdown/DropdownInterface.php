@@ -20,6 +20,4 @@ interface DropdownInterface
 
     public function getSelect(): string;
 
-    public function getView():string;
-
 }
