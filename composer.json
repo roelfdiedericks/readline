@@ -26,7 +26,8 @@
     "require": {
         "php": ">=7.0",
         "hoa/console": " 3.17.*",
-        "ridzhi/readline-info": "^0.1.0"
+        "ridzhi/readline-info": "^0.1.0",
+        "donatj/cli-toolkit": "^0.1.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0"

@@ -4,9 +4,52 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "26f1479311e62196125d836ec3cf3a10",
-    "content-hash": "71f214fd51e13a0093f0756fa22ca7f5",
+    "hash": "28f5c42e3320af966272b583153ef65e",
+    "content-hash": "79536fe434806c5d54a73c7990619829",
     "packages": [
+        {
+            "name": "donatj/cli-toolkit",
+            "version": "v0.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/donatj/CLI-Toolkit.git",
+                "reference": "7e5d16dc5fc8c04baeecfe1f027f3a542151bbc4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/donatj/CLI-Toolkit/zipball/7e5d16dc5fc8c04baeecfe1f027f3a542151bbc4",
+                "reference": "7e5d16dc5fc8c04baeecfe1f027f3a542151bbc4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "CLI": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jesse Donat",
+                    "email": "donatj@gmail.com",
+                    "homepage": "http://donatstudios.com",
+                    "role": "Lead"
+                }
+            ],
+            "description": "Simple PHP CLI Toolkit",
+            "homepage": "https://github.com/donatj/CLI-Toolkit",
+            "keywords": [
+                "CLI-Toolkit",
+                "cli"
+            ],
+            "time": "2014-04-08 22:39:17"
+        },
         {
             "name": "hoa/consistency",
             "version": "1.17.01.10",

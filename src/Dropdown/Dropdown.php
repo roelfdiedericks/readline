@@ -3,20 +3,10 @@
 namespace Ridzhi\Readline\Dropdown;
 
 
-use Hoa\Console\Cursor;
-use Hoa\Console\Window;
-use Hoa\Stream\IStream\Out;
-
-
-class Dropdown implements DropdownInterface
+class Dropdown
 {
 
     const POS_START = 0;
-
-    /**
-     * @var Out Stream
-     */
-    protected $output;
 
     /**
      * @var ThemeInterface
@@ -39,7 +29,7 @@ class Dropdown implements DropdownInterface
     protected $count;
 
     /**
-     * @var int current pos, starts at self::POS_START
+     * @var int current pos
      */
     protected $pos = self::POS_START;
 
@@ -51,65 +41,40 @@ class Dropdown implements DropdownInterface
     /**
      * @var bool if scrolling first -> last
      */
-    protected $isReverse = false;
+    protected $reverse = false;
 
     /**
      * @var bool if select someone
      */
-    protected $isActive = false;
+    protected $hasFocus = false;
 
     /**
      * Dropdown constructor.
-     * @param Out $out
      * @param ThemeInterface $theme
      * @param int $height
      */
-    function __construct(Out $out, ThemeInterface $theme, int $height)
+    function __construct(ThemeInterface $theme, int $height)
     {
-        $this->output = $out;
         $this->theme = $theme;
         $this->height = $height;
     }
 
-    public function show()
+    /**
+     * @return int
+     */
+    public function getHeight(): int
     {
-        $dict = $this->getCurrentDict();
-
-        if (empty($dict)) {
-            return;
-        }
-
-        list($view, $width) = $this->getView($dict);
-
-        Cursor::hide();
-        Cursor::save();
-        Cursor::move('down');
-
-        $diff = Cursor::getPosition()['x'] + $width - Window::getSize()['x'];
-
-        if ($diff > 0) {
-            Cursor::move('left', $diff);
-        }
-
-        $this->output->writeString($view);
-
-        Cursor::restore();
-        Cursor::show();
-    }
-
-    public function hide()
-    {
-        Cursor::clear("down");
+        return $this->height;
     }
 
     public function scrollUp()
     {
-        if (!$this->isActive()) {
-            $this->isActive = true;
+        if (!$this->hasFocus()) {
+            $this->hasFocus = true;
         }
 
         if ($this->pos === self::POS_START) {
-            $this->isReverse = true;
+            $this->reverse = true;
             $this->pos = $this->count - 1;
             $this->offset = $this->count - $this->height;
         } else {
@@ -124,14 +89,15 @@ class Dropdown implements DropdownInterface
 
     public function scrollDown()
     {
-        if (!$this->isActive()) {
-            $this->isActive = true;
+        if (!$this->hasFocus()) {
+            $this->hasFocus = true;
+
             return;
         }
 
         if ($this->pos === ($this->count - 1)) {
             $this->pos = self::POS_START;
-            $this->isReverse = false;
+            $this->reverse = false;
             $this->offset = 0;
         } else {
             $this->pos++;
@@ -142,6 +108,9 @@ class Dropdown implements DropdownInterface
         }
     }
 
+    /**
+     * @param array $content
+     */
     public function setContent(array $content)
     {
         $this->resetScrolling();
@@ -149,48 +118,60 @@ class Dropdown implements DropdownInterface
         $this->count = count($content);
     }
 
-    public function isActive(): bool
+    /**
+     * @return bool
+     */
+    public function hasFocus(): bool
     {
-        return $this->isActive;
+        return $this->hasFocus;
     }
 
-    public function getSelect(): string
+    /**
+     * @return string
+     */
+    public function getActiveItem(): string
     {
-        return $this->content[$this->getPosRelative()];
+        return $this->content[$this->getPosActiveItem()];
     }
 
     public function resetScrolling()
     {
-        $this->isActive = false;
-        $this->isReverse = false;
-        $this->pos = 0;
+        $this->hasFocus = false;
+        $this->reverse = false;
+        $this->pos = self::POS_START;
         $this->offset = 0;
     }
 
     /**
-     * @param array $dict
-     * @return array [view, lineWidth]
+     * @param int $width
+     * @return string
      */
-    protected function getView(array $dict): array
+    public function getView(& $width = 0): string
     {
+        $dict = $this->getCurrentDict();
+
+        if (empty($dict)) {
+            return '';
+        }
+
         $output = '';
-        $width = max(array_map('mb_strlen', $dict));
+        $widthItem = max(array_map('mb_strlen', $dict));
         $scrollbar = ' ';
-        $lineWidth = strlen($this->getViewItem('', $width) . $scrollbar);
+        $lineWidth = $width = strlen($this->getViewItem('', $widthItem) . $scrollbar);
         $lf = $this->getLF($lineWidth);
 
-        $posRelative = $this->getPosRelative();
-        $scrollPos = $this->getScrollPos();
+        $posActiveItem = $this->getPosActiveItem();
+        $posScroll = $this->getPosScroll();
 
-        foreach ($dict as $key => $word) {
-            $textStyle = (!$this->isActive() || $key !== $posRelative) ? $this->theme->getText() : $this->theme->getTextActive();
-            $line = $this->getViewItem($word, $width);
+        foreach ($dict as $lineNumber => $lineValue) {
+            $textStyle = (!$this->hasFocus() || $lineNumber !== $posActiveItem) ? $this->theme->getText() : $this->theme->getTextActive();
+            $line = $this->getViewItem($lineValue, $widthItem);
             $output .= self::ansiFormat($line, $textStyle);
-            $scrollbarStyle = ($key !== $scrollPos) ? $this->theme->getScrollbar() : $this->theme->getSlider();
+            $scrollbarStyle = ($lineNumber !== $posScroll) ? $this->theme->getScrollbar() : $this->theme->getSlider();
             $output .= self::ansiFormat($scrollbar, $scrollbarStyle) . $lf;
         }
 
-        return [$output, $lineWidth];
+        return $output;
     }
 
     /**
@@ -219,9 +200,9 @@ class Dropdown implements DropdownInterface
     }
 
     /**
-     * @return int pos relative viewport
+     * @return int relative pos in viewport, starts from 0
      */
-    protected function getPosRelative(): int
+    protected function getPosActiveItem(): int
     {
         return $this->pos - $this->offset;
     }
@@ -241,12 +222,34 @@ class Dropdown implements DropdownInterface
     /**
      * @return int
      */
-    protected function getScrollPos(): int
+    protected function getPosScroll(): int
     {
-        $ratePerItem = 100 / $this->count;
-        $progress = $this->pos * $ratePerItem;
+        if ($this->count <= $this->height) {
+            //-1 as not exists lineNumber
+            return -1;
+        }
 
-        return floor(($this->height * $progress) / 100);
+        if ($this->offset === 0) {
+            return 0;
+        }
+
+        if ($this->offset === ($this->count - $this->height)) {
+            return $this->height - 1;
+        }
+
+        $progress = $this->pos * (100 / $this->count);
+
+        $pos = (int)floor($this->height * $progress / 100);
+
+        if ($pos === 0) {
+            return 1;
+        }
+
+        if ($pos === ($this->height - 1)) {
+            return $pos - 1;
+        }
+
+        return $pos;
     }
 
     /**

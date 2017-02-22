@@ -3,9 +3,14 @@
 namespace Ridzhi\Readline;
 
 
-use Hoa\Console\Cursor;
+use CLI\Cursor;
+use CLI\Erase;
+use Hoa\Console\Console;
+use Hoa\Console\Cursor as HoaCursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
+use Hoa\Console\Window;
+use Hoa\Stream\IStream\Out;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\ThemeInterface;
 use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
@@ -13,6 +18,11 @@ use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
 
 class Readline
 {
+
+    /**
+     * @var Out
+     */
+    protected $output;
 
     /**
      * @var CompleteInterface
@@ -35,9 +45,9 @@ class Readline
     protected $dropdown;
 
     /**
-     * @var array
+     * @var array map of handlers
      */
-    protected $keyHandlers;
+    protected $handlers;
 
     /**
      * @var History
@@ -47,8 +57,12 @@ class Readline
     /**
      * @var bool
      */
-    protected $pressEnter = false;
+    protected $hasEnter = false;
 
+    /**
+     * @var int
+     */
+    protected $lastPos = 0;
 
     /**
      * Readline constructor.
@@ -61,53 +75,46 @@ class Readline
             $theme = new DefaultTheme();
         }
 
-        $output = new Output();
-        $this->dropdown = new Dropdown($output, $theme, $height);
-        $this->buffer = new Buffer($output);
+        $this->output = new Output();
+        $this->dropdown = new Dropdown($theme, $height);
+        $this->buffer = new Buffer();
         $this->history = new History();
         $this->input = new Input();
 
         $this->initKeyHandlers();
     }
 
+    /**
+     * @param string $prompt
+     * @return string
+     */
     public function read(string $prompt): string
     {
+        Console::advancedInteraction();
         $this->updateDropdown();
         $this->buffer->setPrompt($prompt);
-        $pos = Cursor::getPosition();
+
+        $this->write($prompt);
+        $maxUsageLength = 4;
 
         do {
-            $this->buffer->output($pos['x'], $pos['y']);
-            $this->dropdown->show();
-            $input = $this->input->read($maxUsageLength = 5);
-            $this->dropdown->hide();
+            $this->showDropdown();
+            $input = $this->input->read($maxUsageLength);
+            $this->hideDropdown();
 
-//            $segments = str_split($input);
-//
-//            foreach ($segments as $segment) {
-//                echo "CHar code:" . ord($segment) . PHP_EOL;
-//            }
-//
-//            echo "-----------------------";
-//            continue;
-//
-            if ($this->tryResolveAsServiceCommand($input)) {
+            $isSpecial = $this->tryResolveAsServiceCommand($input) || $this->isUnresolved($input);
+
+            if ($isSpecial) {
                 continue;
             }
 
-            // omit unresolved
-            if ($this->isUnresolved($input)) {
-                continue;
-            }
-
-            //char processing
-            $this->buffer->insert($input);
+            $this->insert($input);
             $this->updateDropdown();
 
-        } while (!$this->pressEnter);
+        } while (!$this->hasEnter);
 
-        $this->pressEnter = false;
-        $line = $this->buffer->getInput();
+        $this->hasEnter = false;
+        $line = $this->buffer->get();
         $this->history->add($line);
         $this->buffer->reset();
 
@@ -136,16 +143,7 @@ class Readline
      */
     public function registerKeyHandler($value, Callable $handler)
     {
-        $this->keyHandlers[$value] = $handler;
-    }
-
-    /**
-     * @param int|string $value ASCII code| String value
-     * @param string $handler Function name
-     */
-    protected function registerCoreKeyHandler($value, string $handler)
-    {
-        $this->registerKeyHandler($value, [$this, $handler]);
+        $this->handlers[$value] = $handler;
     }
 
     protected function initKeyHandlers()
@@ -194,57 +192,91 @@ class Readline
 
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerEscape(Readline $self)
     {
-        if ($self->dropdown->isActive()) {
+        if ($self->dropdown->hasFocus()) {
             $self->dropdown->resetScrolling();
         }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerQuotes(Readline $self)
     {
-        $self->buffer->insert("\"\"");
-        $self->buffer->cursorPrev();
-        $self->updateDropdown();
+        $self->insert("\"\"");
+        $self->cursorLeft();
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerPageUp(Readline $self)
     {
-        $prev = $self->history->prev();
-        $self->buffer->reset();
-        $self->buffer->insert($prev);
-        $self->updateDropdown();
+        $self->showHistory($self->history->prev());
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerPageDown(Readline $self)
     {
-        $next = $self->history->next();
-        $self->buffer->reset();
-        $self->buffer->insert($next);
-        $self->updateDropdown();
+        $self->showHistory($self->history->next());
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerBackspace(Readline $self)
     {
-        $self->buffer->removeChar();
-        $self->updateDropdown();
+        if ($self->buffer->backspace()) {
+            $self->cursorLeftWithAutoWrap();
+            Erase::down();
+            $self->update();
+        }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerDelete(Readline $self)
     {
-        $self->buffer->removeChar(false);
+        if ($self->buffer->delete()) {
+            Erase::down();
+            $self->update();
+        }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerHome(Readline $self)
     {
+        $steps = $self->buffer->getPos();
         $self->buffer->cursorToBegin();
+        $self->cursorLeftWithAutoWrap($steps);
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerEnd(Readline $self)
     {
+        $prev = $self->buffer->getPos();
         $self->buffer->cursorToEnd();
+        $steps = $self->buffer->getPos() - $prev;
+
+        if ($steps > 0) {
+            $self->cursorRightWithAutoWrap($steps);
+        }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerTab(Readline $self)
     {
         $input = $self->buffer->getInputCurrent();
@@ -255,46 +287,258 @@ class Readline
             $suffix = $self->getSuffix($info['current'], $data);
 
             if ($suffix !== '') {
-                $self->buffer->insert($suffix);
+                $self->insert($suffix);
             }
         }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerEnter(Readline $self)
     {
-        if ($self->dropdown->isActive()) {
+        if ($self->dropdown->hasFocus()) {
             $self->processComplete();
         } else {
-            $self->pressEnter = true;
+            $self->hasEnter = true;
         }
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerArrowUp(Readline $self)
     {
         $self->dropdown->scrollUp();
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerArrowRight(Readline $self)
     {
-        $self->buffer->cursorNext();
-        $self->updateDropdown();
+        $self->cursorRight();
     }
 
-    //TODO для скрола добавить чеки что окно что то покащывпет
+    /**
+     * TODO: для скрола добавить чеки что окно что то покащывпет
+     * @param Readline $self
+     */
     protected function handlerArrowDown(Readline $self)
     {
         $self->dropdown->scrollDown();
     }
 
+    /**
+     * @param Readline $self
+     */
     protected function handlerArrowLeft(Readline $self)
     {
-        $self->buffer->cursorPrev();
-        $self->updateDropdown();
+        $self->cursorLeft();
+    }
+
+    /**
+     * @param int $steps
+     */
+    protected function cursorLeftWithAutoWrap(int $steps = 1)
+    {
+        Cursor::hide();
+
+        $x = $this->getX();
+
+        if ($x > $steps) {
+
+            if ($steps > 0) {
+                Cursor::back($steps);
+                $this->lastPos = $x - $steps;
+            }
+
+        } else {
+            $steps = $steps - $x;
+            $width = Window::getSize()['x'];
+            $offsetY = floor($steps / $width) + 1;
+            $offsetX = $steps - (($offsetY - 1) * $width);
+
+            Cursor::up($offsetY);
+            Cursor::forward(9999);
+
+            if ($offsetX > 0) {
+                Cursor::back($offsetX);
+            }
+
+            $this->lastPos = $offsetX;
+        }
+
+        Cursor::show();
+    }
+
+    /**
+     * @param int $steps
+     */
+    protected function cursorRightWithAutoWrap(int $steps = 1)
+    {
+        Cursor::hide();
+
+        $width = Window::getSize()['x'];
+        $x = $this->getX();
+
+        if ($steps > 1) {
+
+            $limit = $width - $x;
+
+            if ($steps > $limit) {
+                $steps = $steps - $limit;
+                $offsetY = floor($steps / $width) + 1;
+                $offsetX = $steps - (($offsetY - 1) * $width) - 1;
+
+                Cursor::down($offsetY);
+                Cursor::back(9999);
+
+                if ($offsetX > 0) {
+                    Cursor::forward($offsetX);
+                }
+            } else {
+                Cursor::forward($steps);
+                $this->lastPos = $x + 1;
+            }
+
+        } else {
+            if ($x < $width) {
+                Cursor::forward();
+                $this->lastPos = $x + 1;
+            } else {
+                Cursor::down();
+                Cursor::back(9999);
+                $this->lastPos = 1;
+            }
+        }
+
+        Cursor::show();
+    }
+
+    /**
+     * @param int|string $value ASCII code| String value
+     * @param string $handler Function name
+     */
+    protected function registerCoreKeyHandler($value, string $handler)
+    {
+        $this->registerKeyHandler($value, [$this, $handler]);
+    }
+
+    /**
+     * @param string $value
+     */
+    protected function insert(string $value)
+    {
+        $this->buffer->insert($value);
+
+        if ($this->buffer->isEnd()) {
+            $this->write($value);
+
+            return;
+        }
+
+        $tail = $this->buffer->getInputTail();
+        $this->write($value . $tail);
+        $this->cursorLeftWithAutoWrap(mb_strlen($tail));
+    }
+
+    protected function update()
+    {
+        $value = $this->buffer->getInputTail();
+        $this->write($value);
+        $this->cursorLeftWithAutoWrap(mb_strlen($value));
+        $this->updateDropdown();
+    }
+
+    /**
+     * @param string $command
+     */
+    protected function showHistory(string $command)
+    {
+        $steps = $this->buffer->getPos();
+        $this->buffer->reset();
+        $this->cursorLeftWithAutoWrap($steps);
+        Erase::down();
+        $this->insert($command);
+    }
+
+    protected function showDropdown()
+    {
+        $view = $this->dropdown->getView($width);
+
+        if (empty($view)) {
+            return;
+        }
+
+        Cursor::hide();
+        Cursor::savepos();
+
+        $size = Window::getSize();
+        $pos = HoaCursor::getPosition();
+
+        $padding = 1;
+        $diffY = $pos['y'] + $this->dropdown->getHeight() - $size['y'] + $padding;
+
+        if ($diffY > 0) {
+            Window::scroll('up', $diffY);
+            Cursor::up($diffY);
+        }
+
+        Cursor::down();
+
+        $diffX = $pos['x'] + $width - $size['x'];
+
+        if ($diffX > 0) {
+            Cursor::back($diffX);
+        }
+
+        $this->output->writeAll($view);
+
+        Cursor::restore();
+
+        if ($diffY > 0) {
+            Cursor::up($diffY);
+        }
+
+        Cursor::show();
+    }
+
+    protected function hideDropdown()
+    {
+        Cursor::save();
+        Cursor::down();
+        Cursor::back(9999);
+        Erase::down();
+        Cursor::restore();
     }
 
     protected function updateDropdown()
     {
         $this->dropdown->setContent($this->getDict());
+    }
+
+    /**
+     * @param int $steps
+     */
+    protected function cursorLeft(int $steps = 1)
+    {
+        if ($this->buffer->cursorPrev($steps)) {
+            $this->cursorLeftWithAutoWrap();
+            $this->update();
+        }
+    }
+
+    /**
+     * @param int $steps
+     * @param bool $extend
+     */
+    protected function cursorRight(int $steps = 1, bool $extend = false)
+    {
+        if ($this->buffer->cursorNext($steps, $extend)) {
+            $this->cursorRightWithAutoWrap($steps);
+            $this->update();
+        }
     }
 
     /**
@@ -314,18 +558,52 @@ class Readline
 
     protected function processComplete()
     {
-        $value = $this->dropdown->getSelect();
+        $value = $this->dropdown->getActiveItem();
         $info = Info::create($this->buffer->getInputCurrent());
         $completion = substr($value, strlen($info['current']));
-        $this->buffer->insert($completion);
+        $this->insert($completion);
+        $this->cursorRight($info['offset'], true);
+    }
 
-        if ($info['quoted']) {
-            $this->buffer->cursorNext(2);
-        } else {
-            $this->buffer->cursorNext();
+    /**
+     * @param string $value
+     */
+    protected function writeWithAutoLF(string $value)
+    {
+        if (empty($value)) {
+            return;
         }
 
-        $this->updateDropdown();
+        $this->output->writeAll($value);
+
+        $x = $this->getX();
+
+        if ($x === $this->lastPos) {
+            Cursor::down();
+            Cursor::back(9999);
+        } else {
+            $this->lastPos = $x;
+        }
+
+    }
+
+    /**
+     * @param string $value
+     */
+    protected function write(string $value)
+    {
+        Cursor::hide();
+
+        $length = mb_strlen($value);
+
+        if ($length > 1) {
+            $this->writeWithAutoLF(mb_substr($value, 0, -1));
+            $value = mb_substr($value, -1);
+        }
+
+        $this->writeWithAutoLF($value);
+
+        Cursor::show();
     }
 
     /**
@@ -374,7 +652,22 @@ class Readline
     }
 
     /**
-     * TODO just stub, make in future
+     * @return int
+     */
+    protected function getX(): int
+    {
+        //Very slow and unpredictable instruction
+        $x = HoaCursor::getPosition()['x'];
+
+        // hack if getting zero
+        if ($x === 0) {
+            return $this->getX();
+        }
+
+        return $x;
+    }
+
+    /**
      * @param string $str
      * @return bool
      */
@@ -389,11 +682,11 @@ class Readline
      */
     protected function callHandler($key): bool
     {
-        if (!isset($this->keyHandlers[$key])) {
+        if (!isset($this->handlers[$key])) {
             return false;
         }
 
-        call_user_func($this->keyHandlers[$key], $this);
+        call_user_func($this->handlers[$key], $this);
 
         return true;
     }

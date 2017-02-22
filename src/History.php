@@ -17,7 +17,9 @@ class History
      */
     public function add(string $command)
     {
-        if (!empty($command)) {
+        $command = trim($command);
+
+        if (empty($command)) {
             return;
         }
 

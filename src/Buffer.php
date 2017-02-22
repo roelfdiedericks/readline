@@ -1,9 +1,8 @@
 <?php
 
 namespace Ridzhi\Readline;
-use Hoa\Console\Cursor;
+
 use Hoa\Console\Window;
-use Hoa\Stream\IStream\Out;
 
 
 /**
@@ -16,11 +15,6 @@ class Buffer
 {
 
     /**
-     * @var Out
-     */
-    protected $output;
-
-    /**
      * @var int
      */
     protected $pos = 0;
@@ -28,21 +22,12 @@ class Buffer
     /**
      * @var string
      */
-    protected $input = '';
+    protected $buffer = '';
 
     /**
      * @var string
      */
     protected $prompt = '';
-
-    /**
-     * Buffer constructor.
-     * @param Out $output
-     */
-    public function __construct(Out $output)
-    {
-        $this->output = $output;
-    }
 
     /**
      * @param string $prompt
@@ -52,23 +37,9 @@ class Buffer
         $this->prompt = $prompt;
     }
 
-    public function output(int $x, int $y)
-    {
-        list($newX, $newY) = $this->getTerminalPos($x, $y);
-
-        Cursor::hide();
-        Cursor::moveTo($x, $y);
-        Cursor::clear("down");
-
-        $this->output->writeString($this->getPrompt() . $this->getInput());
-
-        Cursor::moveTo($newX, $newY);
-        Cursor::show();
-    }
-
     public function reset()
     {
-        $this->input = '';
+        $this->buffer = '';
         $this->pos = 0;
     }
 
@@ -77,23 +48,28 @@ class Buffer
      */
     public function getPos(): int
     {
-        return strlen($this->prompt) + $this->pos;
+        return $this->pos;
+    }
+
+    /**
+     * @param bool $prompt
+     * @return string
+     */
+    public function get(bool $prompt = false): string
+    {
+        if ($prompt) {
+            return $this->prompt . $this->buffer;
+        }
+
+        return $this->buffer;
     }
 
     /**
      * @return string
      */
-    public function getPrompt(): string
+    public function getInputTail(): string
     {
-        return $this->prompt;
-    }
-
-    /**
-     * @return string
-     */
-    public function getInput(): string
-    {
-        return $this->input;
+        return mb_substr($this->buffer, $this->pos);
     }
 
     /**
@@ -101,13 +77,16 @@ class Buffer
      */
     public function getInputCurrent(): string
     {
-        return substr($this->input, 0, $this->pos);
+        return mb_substr($this->buffer, 0, $this->pos);
     }
 
+    /**
+     * @param string $value
+     */
     public function insert(string $value)
     {
-        $this->insertToInput($value);
-        $this->cursorNext(strlen($value));
+        $this->insertString($value);
+        $this->cursorNext(mb_strlen($value));
     }
 
     public function cursorToEnd()
@@ -120,41 +99,105 @@ class Buffer
         $this->pos = 0;
     }
 
-    public function cursorPrev(int $step = 1)
+    /**
+     * @param int $step
+     * @return bool
+     */
+    public function cursorPrev(int $step = 1): bool
     {
         $this->pos -= $step;
 
         if ($this->pos < 0) {
             $this->pos = 0;
+
+            return false;
         }
+
+        return true;
     }
 
-    public function cursorNext(int $step = 1)
+    /**
+     * @param int $step
+     * @param bool $extend
+     * @return bool
+     */
+    public function cursorNext(int $step = 1, $extend = false): bool
     {
         $max = $this->getLength();
         $this->pos += $step;
 
-        if ($this->pos > $max) {
+        $isOutOfBounds = $this->pos > $max;
+
+        if (!$isOutOfBounds) {
+            return true;
+        }
+
+        if ($extend) {
             $offset = $this->pos - $max;
             $this->pos = $max;
             $this->insert(str_repeat(" ", $offset));
+
+            return true;
         }
+
+        $this->pos = $max;
+
+        return false;
     }
 
-    public function removeChar(bool $left = true)
+    /**
+     * Remove char before cursor
+     *
+     * @return bool
+     */
+    public function backspace(): bool
     {
-        if ($left) {
-            if (!$this->isEmpty()) {
-                $this->input =  substr($this->input, 0, $this->pos - 1) . $this->getInputNext();
-                $this->cursorPrev();
-            }
-        } elseif(!$this->isEnd()) {
-            $this->cursorNext();
-            $this->removeChar();
+        if ($this->isEmpty() || $this->pos === 0) {
+            return false;
         }
 
+        $this->buffer = mb_substr($this->buffer, 0, $this->pos - 1) . $this->getInputTail();
+
+        return $this->cursorPrev();
     }
 
+    /**
+     * Remove char after cursor
+     *
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        if ($this->isEnd()) {
+            return false;
+        }
+
+        $this->cursorNext();
+
+        return $this->backspace();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnd(): bool
+    {
+        return $this->pos === $this->getLength();
+    }
+
+    /**
+     * @return int
+     */
+    public function getLength(): int
+    {
+        return mb_strlen($this->buffer);
+    }
+
+    /**
+     * @param int $x
+     * @param int $y
+     * @return array
+     */
     protected function getTerminalPos(int $x, int $y): array
     {
         $width = Window::getSize()['x'];
@@ -169,17 +212,9 @@ class Buffer
     /**
      * @param string $value
      */
-    protected function insertToInput(string $value)
+    protected function insertString(string $value)
     {
-        $this->input = implode("", [$this->getInputCurrent(), $value, $this->getInputNext()]);
-    }
-
-    /**
-     * @return int
-     */
-    protected function getLength(): int
-    {
-        return strlen($this->input);
+        $this->buffer = implode("", [$this->getInputCurrent(), $value, $this->getInputTail()]);
     }
 
     /**
@@ -187,23 +222,7 @@ class Buffer
      */
     protected function isEmpty(): bool
     {
-        return $this->input === '';
+        return $this->buffer === '';
     }
 
-    /**
-     * @return bool
-     */
-    protected function isEnd(): bool
-    {
-        return $this->pos === $this->getLength();
-    }
-
-    /**
-     * @return string
-     */
-    protected function getInputNext(): string
-    {
-        return substr($this->input, $this->pos);
-    }
-    
 }
