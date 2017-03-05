@@ -2,7 +2,10 @@
 
 namespace Ridzhi\Readline;
 
-
+/**
+ * Class History
+ * @package Ridzhi\Readline
+ */
 class History
 {
 
@@ -10,7 +13,6 @@ class History
      * @var array
      */
     protected $history = [];
-
 
     /**
      * @param string $command

@@ -2,7 +2,6 @@
 
 namespace Ridzhi\Readline;
 
-
 use CLI\Cursor;
 use CLI\Erase;
 use Hoa\Console\Console;
@@ -11,11 +10,17 @@ use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Hoa\Console\Window;
 use Hoa\Stream\IStream\Out;
+use Ridzhi\Readline\Dropdown\BaseDropdown;
 use Ridzhi\Readline\Dropdown\Dropdown;
+use Ridzhi\Readline\Dropdown\NullDropdown;
 use Ridzhi\Readline\Dropdown\ThemeInterface;
 use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
 
 
+/**
+ * Class Readline
+ * @package Ridzhi\Readline
+ */
 class Readline
 {
 
@@ -40,7 +45,7 @@ class Readline
     protected $input;
 
     /**
-     * @var Dropdown
+     * @var BaseDropdown
      */
     protected $dropdown;
 
@@ -76,7 +81,8 @@ class Readline
         }
 
         $this->output = new Output();
-        $this->dropdown = new Dropdown($theme, $height);
+//        $this->dropdown = new Dropdown($theme, $height);
+        $this->dropdown = new NullDropdown($theme, $height);
         $this->buffer = new Buffer();
         $this->history = new History();
         $this->input = new Input();
@@ -127,12 +133,13 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
+        $this->dropdown = new Dropdown(new DefaultTheme(), 7);
     }
 
     /**
-     * @return Dropdown
+     * @return BaseDropdown
      */
-    public function getDropdown(): Dropdown
+    public function getDropdown(): BaseDropdown
     {
         return $this->dropdown;
     }
@@ -198,7 +205,7 @@ class Readline
     protected function handlerEscape(Readline $self)
     {
         if ($self->dropdown->hasFocus()) {
-            $self->dropdown->resetScrolling();
+            $self->dropdown->reset();
         }
     }
 
@@ -280,7 +287,7 @@ class Readline
     protected function handlerTab(Readline $self)
     {
         $input = $self->buffer->getInputCurrent();
-        $info = Info::create($input);
+        $info = \Info::create($input);
 
         if ($info['current'] !== '') {
             $data = $self->completer->complete($input);
@@ -515,7 +522,10 @@ class Readline
 
     protected function updateDropdown()
     {
-        $this->dropdown->setContent($this->getDict());
+        if ($this->completer instanceof CompleteInterface) {
+            $items = $this->completer->complete($this->buffer->getInputCurrent());
+            $this->dropdown->setItems($items);
+        }
     }
 
     /**
@@ -559,7 +569,7 @@ class Readline
     protected function processComplete()
     {
         $value = $this->dropdown->getActiveItem();
-        $info = Info::create($this->buffer->getInputCurrent());
+        $info = \Info::create($this->buffer->getInputCurrent());
         $completion = substr($value, strlen($info['current']));
         $this->insert($completion);
         $this->cursorRight($info['offset'], true);

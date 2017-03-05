@@ -2,26 +2,19 @@
 
 namespace Ridzhi\Readline\Dropdown;
 
-
-class Dropdown
+/**
+ * Class Dropdown
+ * @package Ridzhi\Readline\Dropdown
+ */
+class Dropdown extends BaseDropdown
 {
 
     const POS_START = 0;
 
     /**
-     * @var ThemeInterface
-     */
-    protected $theme;
-
-    /**
-     * @var int height of dropdown
-     */
-    protected $height;
-
-    /**
      * @var array list of items
      */
-    protected $content = [];
+    protected $items = [];
 
     /**
      * @var int content size
@@ -49,102 +42,26 @@ class Dropdown
     protected $hasFocus = false;
 
     /**
-     * Dropdown constructor.
-     * @param ThemeInterface $theme
-     * @param int $height
+     * @param array $items
      */
-    function __construct(ThemeInterface $theme, int $height)
+    public function setItems(array $items)
     {
-        $this->theme = $theme;
-        $this->height = $height;
+        $this->reset();
+        $this->items = array_values($items);
+        $this->count = count($items);
     }
 
     /**
-     * @return int
-     */
-    public function getHeight(): int
-    {
-        return $this->height;
-    }
-
-    public function scrollUp()
-    {
-        if (!$this->hasFocus()) {
-            $this->hasFocus = true;
-        }
-
-        if ($this->pos === self::POS_START) {
-            $this->reverse = true;
-            $this->pos = $this->count - 1;
-            $this->offset = $this->count - $this->height;
-        } else {
-            $this->pos--;
-
-            if ($this->pos < $this->offset) {
-                $this->offset--;
-            }
-        }
-
-    }
-
-    public function scrollDown()
-    {
-        if (!$this->hasFocus()) {
-            $this->hasFocus = true;
-
-            return;
-        }
-
-        if ($this->pos === ($this->count - 1)) {
-            $this->pos = self::POS_START;
-            $this->reverse = false;
-            $this->offset = 0;
-        } else {
-            $this->pos++;
-
-            if ($this->pos > ($this->offset + $this->height - 1)) {
-                $this->offset++;
-            }
-        }
-    }
-
-    /**
-     * @param array $content
-     */
-    public function setContent(array $content)
-    {
-        $this->resetScrolling();
-        $this->content = array_values($content);
-        $this->count = count($content);
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasFocus(): bool
-    {
-        return $this->hasFocus;
-    }
-
-    /**
-     * @return string
+     * @return string Current chosen
      */
     public function getActiveItem(): string
     {
-        return $this->content[$this->getPosActiveItem()];
-    }
-
-    public function resetScrolling()
-    {
-        $this->hasFocus = false;
-        $this->reverse = false;
-        $this->pos = self::POS_START;
-        $this->offset = 0;
+        return $this->items[$this->getPosActiveItem()];
     }
 
     /**
-     * @param int $width
-     * @return string
+     * @param int $width Full width of current representation
+     * @return string Inline representation of dd
      */
     public function getView(& $width = 0): string
     {
@@ -172,6 +89,79 @@ class Dropdown
         }
 
         return $output;
+    }
+
+    /**
+     * @return int Height of viewport
+     */
+    public function getHeight(): int
+    {
+        return $this->height;
+    }
+
+    /**
+     * @return bool If starts navigation by dd
+     */
+    public function hasFocus(): bool
+    {
+        return $this->hasFocus;
+    }
+
+    /**
+     * Looped, 1 -> n
+     */
+    public function scrollUp()
+    {
+        if (!$this->hasFocus()) {
+            $this->hasFocus = true;
+        }
+
+        if ($this->pos === self::POS_START) {
+            $this->reverse = true;
+            $this->pos = $this->count - 1;
+            $this->offset = $this->count - $this->height;
+        } else {
+            $this->pos--;
+
+            if ($this->pos < $this->offset) {
+                $this->offset--;
+            }
+        }
+    }
+
+    /**
+     * Looped, n -> 1
+     */
+    public function scrollDown()
+    {
+        if (!$this->hasFocus()) {
+            $this->hasFocus = true;
+
+            return;
+        }
+
+        if ($this->pos === ($this->count - 1)) {
+            $this->pos = self::POS_START;
+            $this->reverse = false;
+            $this->offset = 0;
+        } else {
+            $this->pos++;
+
+            if ($this->pos > ($this->offset + $this->height - 1)) {
+                $this->offset++;
+            }
+        }
+    }
+
+    /**
+     * Remove focus, back to default state
+     */
+    public function reset()
+    {
+        $this->hasFocus = false;
+        $this->reverse = false;
+        $this->pos = self::POS_START;
+        $this->offset = 0;
     }
 
     /**
@@ -212,11 +202,11 @@ class Dropdown
      */
     protected function getCurrentDict(): array
     {
-        if (empty($this->content)) {
+        if (empty($this->items)) {
             return [];
         }
 
-        return array_slice($this->content, $this->offset, $this->height);
+        return array_slice($this->items, $this->offset, $this->height);
     }
 
     /**

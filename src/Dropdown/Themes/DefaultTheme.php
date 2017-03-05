@@ -2,9 +2,12 @@
 
 namespace Ridzhi\Readline\Dropdown\Themes;
 
-
 use Ridzhi\Readline\Dropdown\ThemeInterface;
 
+/**
+ * Class DefaultTheme
+ * @package Ridzhi\Readline\Dropdown\Themes
+ */
 class DefaultTheme implements ThemeInterface
 {
 

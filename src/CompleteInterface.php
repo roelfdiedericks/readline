@@ -2,7 +2,10 @@
 
 namespace Ridzhi\Readline;
 
-
+/**
+ * Interface CompleteInterface
+ * @package Ridzhi\Readline
+ */
 interface CompleteInterface
 {
 
