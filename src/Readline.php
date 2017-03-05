@@ -9,7 +9,6 @@ use Hoa\Console\Cursor as HoaCursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Hoa\Console\Window;
-use Hoa\Stream\IStream\Out;
 use Ridzhi\Readline\Dropdown\BaseDropdown;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\NullDropdown;
@@ -25,7 +24,17 @@ class Readline
 {
 
     /**
-     * @var Out
+     * @var ThemeInterface
+     */
+    protected $theme;
+
+    /**
+     * @var int Height of Dropdown
+     */
+    protected $height;
+
+    /**
+     * @var Output
      */
     protected $output;
 
@@ -65,7 +74,7 @@ class Readline
     protected $hasEnter = false;
 
     /**
-     * @var int
+     * @var int Usage for eol tracking
      */
     protected $lastPos = 0;
 
@@ -80,8 +89,10 @@ class Readline
             $theme = new DefaultTheme();
         }
 
+        $this->theme = $theme;
+        $this->height = $height;
+
         $this->output = new Output();
-//        $this->dropdown = new Dropdown($theme, $height);
         $this->dropdown = new NullDropdown($theme, $height);
         $this->buffer = new Buffer();
         $this->history = new History();
@@ -97,9 +108,9 @@ class Readline
     public function read(string $prompt): string
     {
         Console::advancedInteraction();
+
         $this->updateDropdown();
         $this->buffer->setPrompt($prompt);
-
         $this->write($prompt);
         $maxUsageLength = 4;
 
@@ -133,15 +144,8 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
-        $this->dropdown = new Dropdown(new DefaultTheme(), 7);
-    }
-
-    /**
-     * @return BaseDropdown
-     */
-    public function getDropdown(): BaseDropdown
-    {
-        return $this->dropdown;
+        // substitute null implementation to real
+        $this->dropdown = new Dropdown($this->theme, $this->height);
     }
 
     /**
@@ -153,6 +157,10 @@ class Readline
         $this->handlers[$value] = $handler;
     }
 
+    /**
+     * Each handler must keep a mind what all after current cursor position was erase,
+     * it's necessary evil, thanks dropdown
+     */
     protected function initKeyHandlers()
     {
         /** @uses \Ridzhi\Readline\Readline::handlerTab() */
@@ -182,7 +190,7 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerEnd() */
         $this->registerCoreKeyHandler("\033[F", 'handlerEnd');
 
-        /** @uses \Ridzhi\Readline\Readline::bindArrowUp() */
+        /** @uses \Ridzhi\Readline\Readline::handlerArrowUp() */
         $this->registerCoreKeyHandler("\033[A", 'handlerArrowUp');
 
         /** @uses \Ridzhi\Readline\Readline::handlerArrowRight() */
@@ -263,8 +271,7 @@ class Readline
     protected function handlerHome(Readline $self)
     {
         $steps = $self->buffer->getPos();
-        $self->buffer->cursorToBegin();
-        $self->cursorLeftWithAutoWrap($steps);
+        $this->cursorLeft($steps);
     }
 
     /**
@@ -273,6 +280,7 @@ class Readline
     protected function handlerEnd(Readline $self)
     {
         $prev = $self->buffer->getPos();
+        $self->update();
         $self->buffer->cursorToEnd();
         $steps = $self->buffer->getPos() - $prev;
 
@@ -287,6 +295,7 @@ class Readline
     protected function handlerTab(Readline $self)
     {
         $input = $self->buffer->getInputCurrent();
+        //TODO replace dev Info to real
         $info = \Info::create($input);
 
         if ($info['current'] !== '') {
@@ -424,6 +433,9 @@ class Readline
     }
 
     /**
+     * Each handler must keep a mind what all after current cursor position was erase,
+     * it's necessary evil, thanks dropdown
+     *
      * @param int|string $value ASCII code| String value
      * @param string $handler Function name
      */
@@ -472,7 +484,8 @@ class Readline
 
     protected function showDropdown()
     {
-        $view = $this->dropdown->getView($width);
+        $width = 0;
+        $view = $this->dropdown->getView($width); //by reference
 
         if (empty($view)) {
             return;
@@ -534,9 +547,10 @@ class Readline
     protected function cursorLeft(int $steps = 1)
     {
         if ($this->buffer->cursorPrev($steps)) {
-            $this->cursorLeftWithAutoWrap();
-            $this->update();
+            $this->cursorLeftWithAutoWrap($steps);
         }
+
+        $this->update();
     }
 
     /**
@@ -547,8 +561,9 @@ class Readline
     {
         if ($this->buffer->cursorNext($steps, $extend)) {
             $this->cursorRightWithAutoWrap($steps);
-            $this->update();
         }
+
+        $this->update();
     }
 
     /**
