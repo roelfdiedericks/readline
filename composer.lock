@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "28f5c42e3320af966272b583153ef65e",
-    "content-hash": "79536fe434806c5d54a73c7990619829",
+    "hash": "14b9f1cc3b2be1bef3c6091fcd15f4a5",
+    "content-hash": "339a6fdcb02359f351fb1d49473ab215",
     "packages": [
         {
             "name": "donatj/cli-toolkit",
@@ -595,54 +595,6 @@
                 "unicode"
             ],
             "time": "2017-01-16 07:08:25"
-        },
-        {
-            "name": "ridzhi/readline-info",
-            "version": "v0.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Ridzhi/readline-info.git",
-                "reference": "c242692d1ac87b66bcd2e19cf640b3256fd35236"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Ridzhi/readline-info/zipball/c242692d1ac87b66bcd2e19cf640b3256fd35236",
-                "reference": "c242692d1ac87b66bcd2e19cf640b3256fd35236",
-                "shasum": ""
-            },
-            "require": {
-                "hoa/console": "3.17.*",
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^6.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Ridzhi\\Readline\\Info\\": [
-                        "src/"
-                    ]
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Danila Stivrinsh",
-                    "email": "danilaridzhi@gmail.com"
-                }
-            ],
-            "description": "helps to resolve completion of readline package",
-            "keywords": [
-                "autocomplete",
-                "parser",
-                "readline",
-                "readline-info"
-            ],
-            "time": "2017-02-08 15:51:01"
         }
     ],
     "packages-dev": [

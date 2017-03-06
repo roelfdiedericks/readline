@@ -14,6 +14,7 @@ use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\NullDropdown;
 use Ridzhi\Readline\Dropdown\ThemeInterface;
 use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
+use Ridzhi\Readline\Info\Parser;
 
 
 /**
@@ -288,12 +289,11 @@ class Readline
     protected function handlerTab(Readline $self)
     {
         $input = $self->buffer->getCurrent();
-        //TODO replace dev Info to real
-        $info = \Info::create($input);
+        $current = Parser::parse($input)->getCurrent();
 
-        if ($info['current'] !== '') {
+        if ($current !== '') {
             $data = $self->completer->complete($input);
-            $suffix = $self->getSuffix($info['current'], $data);
+            $suffix = $self->getSuffix($current, $data);
 
             if ($suffix !== '') {
                 $self->buffer->insert($suffix);
@@ -308,8 +308,8 @@ class Readline
     {
         if ($self->dropdown->hasFocus()) {
             $value = $self->dropdown->getActiveItem();
-            $info = \Info::create($self->buffer->getCurrent());
-            $completion = substr($value, strlen($info['current']));
+            $current = Parser::parse($self->buffer->getCurrent())->getCurrent();
+            $completion = mb_substr($value, mb_strlen($current));
             $self->buffer->insert($completion);
         } else {
             $self->hasEnter = true;

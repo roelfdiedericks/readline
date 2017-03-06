@@ -2,24 +2,20 @@
 
 namespace Ridzhi\Readline\Tests;
 
-
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Ridzhi\Readline\Readline;
-
 
 class ReadlineTest extends TestCase
 {
 
     protected $obj;
 
-
     public function setUp()
     {
         $class = new \ReflectionClass(Readline::class);
         $this->obj = $class->newInstanceWithoutConstructor();
     }
-
 
     public function testInit()
     {
@@ -34,7 +30,7 @@ class ReadlineTest extends TestCase
      * @cover Readline::getSuffix()
      * @dataProvider getSuffixProvider
      */
-    public function testGetCommonString(string $pattern, array $dict, string $expected)
+    public function testGetSuffix(string $pattern, array $dict, string $expected)
     {
         $method = new \ReflectionMethod(Readline::class, 'getSuffix');
         $method->setAccessible(true);
