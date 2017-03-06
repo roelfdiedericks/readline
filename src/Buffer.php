@@ -2,9 +2,6 @@
 
 namespace Ridzhi\Readline;
 
-use Hoa\Console\Window;
-
-
 /**
  * Logic representation of CLI input
  *
@@ -40,7 +37,7 @@ class Buffer
     public function reset()
     {
         $this->buffer = '';
-        $this->pos = 0;
+        $this->cursorToBegin();
     }
 
     /**
@@ -53,9 +50,9 @@ class Buffer
 
     /**
      * @param bool $prompt
-     * @return string
+     * @return string Line buffer
      */
-    public function get(bool $prompt = false): string
+    public function getFull(bool $prompt = false): string
     {
         if ($prompt) {
             return $this->prompt . $this->buffer;
@@ -67,17 +64,9 @@ class Buffer
     /**
      * @return string
      */
-    public function getInputTail(): string
+    public function getCurrent(): string
     {
-        return mb_substr($this->buffer, $this->pos);
-    }
-
-    /**
-     * @return string
-     */
-    public function getInputCurrent(): string
-    {
-        return mb_substr($this->buffer, 0, $this->pos);
+        return $this->slice(0, $this->pos);
     }
 
     /**
@@ -101,88 +90,59 @@ class Buffer
 
     /**
      * @param int $step
-     * @return bool
      */
-    public function cursorPrev(int $step = 1): bool
+    public function cursorPrev(int $step = 1)
     {
         $this->pos -= $step;
 
         if ($this->pos < 0) {
-            $this->pos = 0;
-
-            return false;
+            $this->cursorToBegin();
         }
-
-        return true;
     }
 
     /**
      * @param int $step
      * @param bool $extend
-     * @return bool
      */
-    public function cursorNext(int $step = 1, $extend = false): bool
+    public function cursorNext(int $step = 1, $extend = false)
     {
         $max = $this->getLength();
         $this->pos += $step;
 
-        $isOutOfBounds = $this->pos > $max;
-
-        if (!$isOutOfBounds) {
-            return true;
+        if ($this->pos <= $max) {
+            return;
         }
 
         if ($extend) {
             $offset = $this->pos - $max;
-            $this->pos = $max;
             $this->insert(str_repeat(" ", $offset));
 
-            return true;
+            return;
         }
 
         $this->pos = $max;
-
-        return false;
     }
 
     /**
      * Remove char before cursor
-     *
-     * @return bool
      */
-    public function backspace(): bool
+    public function backspace()
     {
-        if ($this->isEmpty() || $this->pos === 0) {
-            return false;
+        if ($this->buffer !== '' && $this->pos !== 0) {
+            $this->buffer = $this->slice(0, $this->pos - 1) . $this->slice($this->pos);
+            $this->cursorPrev();
         }
-
-        $this->buffer = mb_substr($this->buffer, 0, $this->pos - 1) . $this->getInputTail();
-
-        return $this->cursorPrev();
     }
 
     /**
      * Remove char after cursor
-     *
-     * @return bool
      */
-    public function delete(): bool
+    public function delete()
     {
-        if ($this->isEnd()) {
-            return false;
+        if ($this->pos !== $this->getLength()) {
+            $this->cursorNext();
+            $this->backspace();
         }
-
-        $this->cursorNext();
-
-        return $this->backspace();
-    }
-
-    /**
-     * @return bool
-     */
-    public function isEnd(): bool
-    {
-        return $this->pos === $this->getLength();
     }
 
     /**
@@ -194,19 +154,13 @@ class Buffer
     }
 
     /**
-     * @param int $x
-     * @param int $y
-     * @return array
+     * @param int $start
+     * @param int|null $length
+     * @return string
      */
-    protected function getTerminalPos(int $x, int $y): array
+    protected function slice(int $start, $length = null): string
     {
-        $width = Window::getSize()['x'];
-        $pos = $this->getPos();
-
-        $offsetY = floor($pos / $width);
-        $offsetX = $pos - ($offsetY * $width);
-
-        return [$x + $offsetX, $y + $offsetY];
+        return mb_substr($this->buffer, $start, $length);
     }
 
     /**
@@ -214,15 +168,7 @@ class Buffer
      */
     protected function insertString(string $value)
     {
-        $this->buffer = implode("", [$this->getInputCurrent(), $value, $this->getInputTail()]);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function isEmpty(): bool
-    {
-        return $this->buffer === '';
+        $this->buffer = $this->getCurrent() . $value . $this->slice($this->pos);
     }
 
 }
