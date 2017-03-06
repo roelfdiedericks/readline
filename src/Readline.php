@@ -474,6 +474,7 @@ class Readline
     protected function showBuffer()
     {
         $buffer = $this->buffer->getFull();
+        $this->lastConsolePos = $pos = $this->buffer->getPos();
 
         if (empty($buffer)) {
             return;
@@ -483,9 +484,7 @@ class Readline
         $leftOffset = mb_strlen($buffer);
 
         $this->cursorLeftWithAutoWrap($leftOffset);
-        $this->cursorRightWithAutoWrap($this->buffer->getPos());
-
-        $this->lastConsolePos = $this->buffer->getPos();
+        $this->cursorRightWithAutoWrap($pos);
     }
 
     protected function showDropdown()

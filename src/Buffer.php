@@ -128,7 +128,7 @@ class Buffer
      */
     public function backspace()
     {
-        if ($this->buffer !== '' && $this->pos !== 0) {
+        if ($this->buffer !== '' && $this->pos > 0) {
             $this->buffer = $this->slice(0, $this->pos - 1) . $this->slice($this->pos);
             $this->cursorPrev();
         }
