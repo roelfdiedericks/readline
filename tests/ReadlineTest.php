@@ -17,11 +17,6 @@ class ReadlineTest extends TestCase
         $this->obj = $class->newInstanceWithoutConstructor();
     }
 
-    public function testInit()
-    {
-        Assert::assertEquals(1,1);
-    }
-
     /**
      * @param string $pattern
      * @param array $dict
