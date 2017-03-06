@@ -161,15 +161,6 @@ class Readline
         $this->dropdown = new Dropdown($this->theme, $this->height);
     }
 
-    /**
-     * @param $value
-     * @param callable $handler
-     */
-    public function registerKeyHandler($value, Callable $handler)
-    {
-        $this->handlers[$value] = $handler;
-    }
-
     protected function initKeyHandlers()
     {
         /** @uses \Ridzhi\Readline\Readline::handlerTab() */
@@ -434,6 +425,15 @@ class Readline
         }
 
         Cursor::show();
+    }
+
+    /**
+     * @param $value
+     * @param callable $handler
+     */
+    protected function registerKeyHandler($value, Callable $handler)
+    {
+        $this->handlers[$value] = $handler;
     }
 
     /**
