@@ -1,2 +1,4 @@
 # Readline
-native readline implementation
+###native readline implementation
+
+![CompletionGif](example/example.gif)
