@@ -16,7 +16,7 @@ class DefaultTheme implements ThemeInterface
      */
     public function getText(): array
     {
-        return [37, 46, 1];
+        return [38, 2, 255, 255, 255, 46];
     }
 
     /**
@@ -24,7 +24,7 @@ class DefaultTheme implements ThemeInterface
      */
     public function getTextActive(): array
     {
-        return [30, 46, 1];
+        return [38, 2, 0, 0, 0, 48, 2, 0, 180, 180];
     }
 
     /**
