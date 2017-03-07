@@ -17,7 +17,7 @@ abstract class BaseDropdown implements DropdownInterface
     /**
      * @var int height of dropdown
      */
-    protected $height;
+    protected $maxHeight;
 
     /**
      * BaseDropdown constructor.
@@ -27,7 +27,7 @@ abstract class BaseDropdown implements DropdownInterface
     function __construct(ThemeInterface $theme, int $height)
     {
         $this->theme = $theme;
-        $this->height = $height;
+        $this->maxHeight = $height;
     }
 
 }

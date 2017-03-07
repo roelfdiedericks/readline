@@ -42,6 +42,11 @@ class Dropdown extends BaseDropdown
     protected $hasFocus = false;
 
     /**
+     * @var int actual height
+     */
+    protected $height;
+
+    /**
      * @param array $items
      */
     public function setItems(array $items)
@@ -49,6 +54,12 @@ class Dropdown extends BaseDropdown
         $this->reset();
         $this->items = array_values($items);
         $this->count = count($items);
+
+        if ($this->count <= $this->maxHeight) {
+            $this->height = $this->count;
+        } else {
+            $this->height = $this->maxHeight;
+        }
     }
 
     /**

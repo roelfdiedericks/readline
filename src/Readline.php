@@ -9,8 +9,8 @@ use Hoa\Console\Cursor as HoaCursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Hoa\Console\Window;
-use Ridzhi\Readline\Dropdown\BaseDropdown;
 use Ridzhi\Readline\Dropdown\Dropdown;
+use Ridzhi\Readline\Dropdown\DropdownInterface;
 use Ridzhi\Readline\Dropdown\NullDropdown;
 use Ridzhi\Readline\Dropdown\ThemeInterface;
 use Ridzhi\Readline\Dropdown\Themes\DefaultTheme;
@@ -55,7 +55,7 @@ class Readline
     protected $input;
 
     /**
-     * @var BaseDropdown
+     * @var DropdownInterface
      */
     protected $dropdown;
 
