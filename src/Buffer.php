@@ -49,6 +49,14 @@ class Buffer
     }
 
     /**
+     * @return int
+     */
+    public function getLength(): int
+    {
+        return mb_strlen($this->buffer);
+    }
+
+    /**
      * @return string Line buffer
      */
     public function getFull(): string
@@ -138,14 +146,6 @@ class Buffer
             $this->cursorNext();
             $this->backspace();
         }
-    }
-
-    /**
-     * @return int
-     */
-    public function getLength(): int
-    {
-        return mb_strlen($this->buffer);
     }
 
     /**
