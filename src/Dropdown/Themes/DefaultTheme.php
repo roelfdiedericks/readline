@@ -24,7 +24,7 @@ class DefaultTheme implements ThemeInterface
      */
     public function getTextActive(): array
     {
-        return [38, 2, 0, 0, 0, 48, 2, 0, 180, 180];
+        return [30, 48, 5, 14];
     }
 
     /**
@@ -32,7 +32,7 @@ class DefaultTheme implements ThemeInterface
      */
     public function getScrollbar(): array
     {
-        return [48, 2, 50, 50, 50];
+        return [47];
     }
 
     /**
@@ -40,7 +40,7 @@ class DefaultTheme implements ThemeInterface
      */
     public function getSlider(): array
     {
-        return [48, 2, 90, 90, 90];
+        return [48, 5, 241];
     }
 
 }
