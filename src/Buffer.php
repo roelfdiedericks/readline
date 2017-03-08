@@ -49,15 +49,10 @@ class Buffer
     }
 
     /**
-     * @param bool $prompt
      * @return string Line buffer
      */
-    public function getFull(bool $prompt = false): string
+    public function getFull(): string
     {
-        if ($prompt) {
-            return $this->prompt . $this->buffer;
-        }
-
         return $this->buffer;
     }
 
