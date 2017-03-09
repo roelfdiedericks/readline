@@ -131,6 +131,104 @@ class BufferTest extends TestCase
         Assert::assertSame($expected, $this->obj->getPos());
     }
 
+
+    /**
+     * @param string $insert
+     * @param int $start
+     * @param int $steps
+     * @param bool $extend
+     * @param int $expected
+     *
+     * @cover Buffer::cursorNext()
+     * @dataProvider cursorNextProvider
+     */
+    public function testCursorNext(string $insert, int $start, int $steps, bool $extend, int $expected)
+    {
+        $this->obj->insert($insert);
+        $pos = new \ReflectionProperty(Buffer::class, 'pos');
+        $pos->setAccessible(true);
+        $pos->setValue($this->obj, $start);
+
+        $this->obj->cursorNext($steps, $extend);
+
+        Assert::assertSame($expected, $this->obj->getPos());
+    }
+
+    /**
+     * @param string $insert
+     * @param int $start
+     * @param int $steps
+     * @param int $expectedPos
+     * @param string $expectedBuffer
+     * @internal param int $expected
+     *
+     * @cover Buffer::cursorNext()
+     * @dataProvider cursorNextExtendProvider
+     */
+    public function testCursorNextExtend(string $insert, int $start, int $steps, int $expectedPos, string $expectedBuffer)
+    {
+        $this->obj->insert($insert);
+        $pos = new \ReflectionProperty(Buffer::class, 'pos');
+        $pos->setAccessible(true);
+        $pos->setValue($this->obj, $start);
+
+        $this->obj->cursorNext($steps, true);
+
+        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedBuffer, $this->obj->getFull());
+    }
+
+    /**
+     * @param string $insert
+     * @param int $offset
+     * @param int $expectedPos
+     * @param string $expectedBuffer
+     *
+     * @cover Buffer::backspace()
+     * @dataProvider backspaceProvider()
+     */
+    public function testBackspace(string $insert, int $offset, int $expectedPos, string $expectedBuffer)
+    {
+        $this->obj->insert($insert);
+        $this->obj->cursorPrev($offset);
+        $this->obj->backspace();
+
+        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedBuffer, $this->obj->getFull());
+    }
+
+    /**
+     * @param string $insert
+     * @param int $offset
+     * @param int $expectedPos
+     * @param string $expectedBuffer
+     *
+     * @cover Buffer::delete()
+     * @dataProvider deleteProvider
+     */
+    public function testDelete(string $insert, int $offset, int $expectedPos, string $expectedBuffer)
+    {
+        $this->obj->insert($insert);
+        $this->obj->cursorPrev($offset);
+        $this->obj->delete();
+
+        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedBuffer, $this->obj->getFull());
+    }
+
+    /**
+     * @cover Buffer::slice()
+     */
+    public function testSlice()
+    {
+        $method = new \ReflectionMethod(Buffer::class, 'slice');
+        $method->setAccessible(true);
+
+        $this->obj->insert('command');
+
+        Assert::assertSame('mm', $method->invoke($this->obj, 2, 2));
+    }
+
     /**
      * @param string $value
      * @param string $insert
@@ -156,6 +254,7 @@ class BufferTest extends TestCase
         $expected = '123456789';
 
         return [
+            //string $value, string $insert, int $offset, string $expected
             'begin' => ['456789', '123', 6, $expected],
             'middle' => ['123789', '456', 3, $expected],
             'end' => ['123456', '789', 0, $expected]
@@ -167,10 +266,57 @@ class BufferTest extends TestCase
         $insert = 'command';
 
         return [
+            //string $insert, int $steps, int $expected
             'one step' => [$insert, 1, 6],
             'some steps' => [$insert, 3, 4],
-            'out of bound' => [$insert, 30, 0]
+            'out of bounds' => [$insert, 30, 0]
         ];
     }
 
+    public function cursorNextProvider()
+    {
+        $insert = 'command';
+
+        return [
+            //string $insert, int $start, int $steps, bool $extend, int $expected
+            'one step' => [$insert, 3, 1, false, 4],
+            'some steps' => [$insert, 3, 3, false, 6],
+            'out of bounds' => [$insert, 3, 30, false, 7],
+            'out of bounds with extend' => [$insert, 3, 10, true, 13]
+        ];
+    }
+
+    public function cursorNextExtendProvider()
+    {
+        $insert = 'command';
+
+        return [
+            //string $insert, int $start, int $steps, int $expectedPos, string $expectedBuffer
+            'one step' => [$insert, 3, 1, 4, 'command'],
+            'some steps' => [$insert, 3, 3, 6, 'command'],
+            'out of bounds' => [$insert, 3, 10, 13, 'command      '],
+        ];
+    }
+
+    public function backspaceProvider()
+    {
+        $insert = 'command';
+        return [
+            //string $insert, int $offset, int $expectedPos, string $expectedBuffer
+            'from end' => [$insert, 0, 6, 'comman'],
+            'from middle' => [$insert, 3, 3, 'comand'],
+            'from begin' => [$insert, 7, 0, 'command'],
+        ];
+    }
+
+    public function deleteProvider()
+    {
+        $insert = 'command';
+        return [
+            //string $insert, int $offset, int $expectedPos, string $expectedBuffer
+            'from end' => [$insert, 0, 7, 'command'],
+            'from middle' => [$insert, 3, 4, 'commnd'],
+            'from begin' => [$insert, 7, 0, 'ommand'],
+        ];
+    }
 }
