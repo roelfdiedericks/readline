@@ -1,6 +1,6 @@
 <?php
 
-namespace Ridzhi\Readline\Info\Tests;
+namespace Ridzhi\Readline\Tests\Info;
 
 
 use PHPUnit\Framework\Assert;
