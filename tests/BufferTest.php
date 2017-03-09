@@ -30,10 +30,8 @@ class BufferTest extends TestCase
         $method = new \ReflectionMethod(Buffer::class, 'setPrompt');
         $prompt = 'readline >';
         $method->invoke($this->obj, $prompt);
-        $property = new \ReflectionProperty(Buffer::class, 'prompt');
-        $property->setAccessible(true);
 
-        Assert::assertSame($prompt, $property->getValue($this->obj));
+        Assert::assertAttributeEquals($prompt, 'prompt', $this->obj);
     }
 
     /**
