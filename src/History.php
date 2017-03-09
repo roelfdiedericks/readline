@@ -33,9 +33,9 @@ class History
         //don't adding repeated
         if ($command !== end($this->history)) {
             $this->history[] = $command;
+            next($this->history);
         }
 
-        reset($this->history);
     }
 
     /**
@@ -50,6 +50,8 @@ class History
 
         if ($this->firstIteration) {
             $this->firstIteration = false;
+
+            return current($this->history);
         }
 
         if (prev($this->history) === false) {
@@ -71,8 +73,6 @@ class History
 
         if ($this->firstIteration) {
             $this->firstIteration = false;
-
-            return current($this->history);
         }
 
         if (next($this->history) === false) {
