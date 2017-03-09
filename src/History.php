@@ -15,6 +15,11 @@ class History
     protected $history = [];
 
     /**
+     * @var bool
+     */
+    protected $firstIteration = true;
+
+    /**
      * @param string $command
      */
     public function add(string $command)
@@ -26,9 +31,7 @@ class History
         }
 
         //don't adding repeated
-        end($this->history);
-
-        if ($command !== current($this->history)) {
+        if ($command !== end($this->history)) {
             $this->history[] = $command;
         }
 
@@ -43,6 +46,10 @@ class History
     {
         if (empty($this->history)) {
             return '';
+        }
+
+        if ($this->firstIteration) {
+            $this->firstIteration = false;
         }
 
         if (prev($this->history) === false) {
@@ -60,6 +67,12 @@ class History
     {
         if (empty($this->history)) {
             return '';
+        }
+
+        if ($this->firstIteration) {
+            $this->firstIteration = false;
+
+            return current($this->history);
         }
 
         if (next($this->history) === false) {
