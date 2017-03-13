@@ -298,7 +298,7 @@ class Readline
     protected function handlerEnter(Readline $self)
     {
         if ($self->dropdown->hasFocus()) {
-            $value = $self->dropdown->getActiveItem();
+            $value = $self->dropdown->getSelect();
             $current = Parser::parse($self->buffer->getCurrent())->getCurrent();
             $completion = mb_substr($value, mb_strlen($current));
             $self->buffer->insert($completion);

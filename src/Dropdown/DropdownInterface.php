@@ -17,7 +17,7 @@ interface DropdownInterface
     /**
      * @return string Current chosen
      */
-    public function getActiveItem(): string;
+    public function getSelect(): string;
 
     /**
      * @param int $width Full width of current representation

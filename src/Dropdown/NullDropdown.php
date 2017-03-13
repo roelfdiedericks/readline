@@ -20,7 +20,7 @@ class NullDropdown extends BaseDropdown
     /**
      * @return string Current chosen
      */
-    public function getActiveItem(): string
+    public function getSelect(): string
     {
         return '';
     }

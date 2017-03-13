@@ -66,7 +66,7 @@ class Dropdown extends BaseDropdown
     /**
      * @return string Current chosen
      */
-    public function getActiveItem(): string
+    public function getSelect(): string
     {
         return $this->items[$this->pos];
     }
