@@ -52,6 +52,7 @@ class Dropdown extends BaseDropdown
     public function setItems(array $items)
     {
         $this->reset();
+        //reset indexes
         $this->items = array_values($items);
         $this->count = count($items);
 
@@ -67,7 +68,7 @@ class Dropdown extends BaseDropdown
      */
     public function getActiveItem(): string
     {
-        return $this->items[$this->getPosActiveItem()];
+        return $this->items[$this->pos];
     }
 
     /**
@@ -88,11 +89,11 @@ class Dropdown extends BaseDropdown
         $lineWidth = $width = strlen($this->getViewItem('', $widthItem) . $scrollbar);
         $lf = $this->getLF($lineWidth);
 
-        $posActiveItem = $this->getPosActiveItem();
+        $relativePos = $this->pos - $this->offset;
         $posScroll = $this->getPosScroll();
 
         foreach ($dict as $lineNumber => $lineValue) {
-            $textStyle = (!$this->hasFocus() || $lineNumber !== $posActiveItem) ? $this->theme->getText() : $this->theme->getTextActive();
+            $textStyle = (!$this->hasFocus() || $lineNumber !== $relativePos) ? $this->theme->getText() : $this->theme->getTextActive();
             $line = $this->getViewItem($lineValue, $widthItem);
             $output .= self::ansiFormat($line, $textStyle);
             $scrollbarStyle = ($lineNumber !== $posScroll) ? $this->theme->getScrollbar() : $this->theme->getSlider();
@@ -198,14 +199,6 @@ class Dropdown extends BaseDropdown
     {
         // down 1 line and left $offset chars
         return "\033[1B" . "\033[{$offset}D";
-    }
-
-    /**
-     * @return int relative pos in viewport, starts from 0
-     */
-    protected function getPosActiveItem(): int
-    {
-        return $this->pos - $this->offset;
     }
 
     /**
