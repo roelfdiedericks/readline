@@ -24,7 +24,7 @@ abstract class BaseDropdown implements DropdownInterface
      * @param ThemeInterface $theme
      * @param int $height
      */
-    function __construct(ThemeInterface $theme, int $height)
+    public function __construct(ThemeInterface $theme, int $height)
     {
         $this->theme = $theme;
         $this->maxHeight = $height;
