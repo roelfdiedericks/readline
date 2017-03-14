@@ -44,7 +44,7 @@ class Dropdown extends BaseDropdown
     /**
      * @var int actual height
      */
-    protected $height;
+    protected $height = 0;
 
     /**
      * @param array $items
