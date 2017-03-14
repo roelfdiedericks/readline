@@ -19,7 +19,7 @@ class Dropdown extends BaseDropdown
     /**
      * @var int content size
      */
-    protected $count;
+    protected $count = 0;
 
     /**
      * @var int current pos
