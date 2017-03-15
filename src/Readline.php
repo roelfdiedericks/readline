@@ -201,7 +201,7 @@ class Readline
         $this->registerCoreKeyHandler("\033[D", 'handlerArrowLeft');
 
         /** @uses \Ridzhi\Readline\Readline::handlerQuotes() */
-        $this->registerCoreKeyHandler("\"", "handlerQuotes");
+        $this->registerCoreKeyHandler('"', 'handlerQuotes');
 
     }
 
@@ -220,7 +220,7 @@ class Readline
      */
     protected function handlerQuotes(Readline $self)
     {
-        $self->buffer->insert("\"\"");
+        $self->buffer->insert('""');
         $self->buffer->cursorPrev();
     }
 
@@ -359,7 +359,7 @@ class Readline
             }
 
         } else {
-            $steps = $steps - $x;
+            $steps -= $x;
             $width = Window::getSize()['x'];
             $offsetY = floor($steps / $width) + 1;
             $offsetX = $steps - (($offsetY - 1) * $width);
@@ -396,7 +396,7 @@ class Readline
             $limit = $width - $x;
 
             if ($steps > $limit) {
-                $steps = $steps - $limit;
+                $steps -= $limit;
                 $offsetY = floor($steps / $width) + 1;
                 $offsetX = $steps - (($offsetY - 1) * $width) - 1;
 
