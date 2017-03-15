@@ -6,10 +6,20 @@ namespace Ridzhi\Readline\Dropdown;
  * Class Dropdown
  * @package Ridzhi\Readline\Dropdown
  */
-class Dropdown extends BaseDropdown
+class Dropdown implements DropdownInterface
 {
 
     const POS_START = 0;
+
+    /**
+     * @var ThemeInterface
+     */
+    protected $theme;
+
+    /**
+     * @var int height of dropdown
+     */
+    protected $maxHeight;
 
     /**
      * @var array list of items
@@ -46,21 +56,23 @@ class Dropdown extends BaseDropdown
      */
     protected $height = 0;
 
-    /**
-     * @param array $items
-     */
-    public function setItems(array $items)
-    {
-        $this->reset();
-        //reset indexes
-        $this->items = array_values($items);
-        $this->count = count($items);
 
-        if ($this->count <= $this->maxHeight) {
-            $this->height = $this->count;
-        } else {
-            $this->height = $this->maxHeight;
+    /**
+     * @param array $items Require not empty, for protection consistency API.
+     * For empty use NullDropdown implementation
+     * @param int $height
+     * @param ThemeInterface $theme
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(array $items, int $height, ThemeInterface $theme)
+    {
+        if (empty($items)) {
+            throw new \InvalidArgumentException('Require not empty(for protection consistency API). For empty use NullDropdown implementation');
         }
+
+        $this->maxHeight = $height;
+        $this->theme = $theme;
+        $this->setItems($items);
     }
 
     /**
@@ -78,11 +90,6 @@ class Dropdown extends BaseDropdown
     public function getView(& $width = 0): string
     {
         $dict = $this->getCurrentDict();
-
-        if (empty($dict)) {
-            return '';
-        }
-
         $output = '';
         $widthItem = max(array_map('mb_strlen', $dict));
         $scrollbar = ' ';
@@ -177,6 +184,22 @@ class Dropdown extends BaseDropdown
     }
 
     /**
+     * @param array $items
+     */
+    protected function setItems(array $items)
+    {
+        //reset indexes
+        $this->items = array_values($items);
+        $this->count = count($items);
+
+        if ($this->count <= $this->maxHeight) {
+            $this->height = $this->count;
+        } else {
+            $this->height = $this->maxHeight;
+        }
+    }
+
+    /**
      * Normalize by length + padding
      *
      * @param string $word
@@ -206,10 +229,6 @@ class Dropdown extends BaseDropdown
      */
     protected function getCurrentDict(): array
     {
-        if (empty($this->items)) {
-            return [];
-        }
-
         return array_slice($this->items, $this->offset, $this->height);
     }
 

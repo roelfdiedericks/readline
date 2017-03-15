@@ -10,11 +10,6 @@ interface DropdownInterface
 {
 
     /**
-     * @param array $items
-     */
-    public function setItems(array $items);
-
-    /**
      * @return string Current chosen
      */
     public function getSelect(): string;

@@ -54,7 +54,6 @@ class DropdownTest extends TestCase
 
 
         // check test values not equal defaults
-
         if ($propPos->getValue($this->obj) === $defaultPos ||
             $propOffset->getValue($this->obj) === $defaultOffset ||
             $propHasFocus->getValue($this->obj) === $defaultHasFocus ||
@@ -83,12 +82,18 @@ class DropdownTest extends TestCase
      */
     public function testSetItems(int $maxHeight, array $items, array $expectedItems, int $expectedCount, int $expectedHeight)
     {
-        $dropdown = new Dropdown(new DefaultTheme(), $maxHeight);
-        $dropdown->setItems($items);
+        $method = new \ReflectionMethod(Dropdown::class, 'setItems');
+        $method->setAccessible(true);
 
-        Assert::assertAttributeEquals($expectedItems, 'items', $dropdown);
-        Assert::assertAttributeEquals($expectedCount, 'count', $dropdown);
-        Assert::assertAttributeEquals($expectedHeight, 'height', $dropdown);
+        $propMaxHeight = new \ReflectionProperty(Dropdown::class, 'maxHeight');
+        $propMaxHeight->setAccessible(true);
+        $propMaxHeight->setValue($this->obj, $maxHeight);
+
+        $method->invoke($this->obj, $items);
+
+        Assert::assertAttributeEquals($expectedItems, 'items', $this->obj);
+        Assert::assertAttributeEquals($expectedCount, 'count', $this->obj);
+        Assert::assertAttributeEquals($expectedHeight, 'height', $this->obj);
     }
 
 
@@ -97,8 +102,8 @@ class DropdownTest extends TestCase
      */
     public function testGetSelect()
     {
-        $dropdown = new Dropdown(new DefaultTheme(), 5);
-        $dropdown->setItems($this->getFixtureItems());
+        $dropdown = new Dropdown($this->getFixtureItems(), 5, new DefaultTheme());
+
         // 6 times for scrolling viewport, shows 2-6 items
         $dropdown->scrollDown();
         $dropdown->scrollDown();
@@ -108,6 +113,23 @@ class DropdownTest extends TestCase
         $dropdown->scrollDown();
 
         Assert::assertSame('six', $dropdown->getSelect());
+    }
+
+
+    /**
+     * @cover Dropdown::getHeight()
+     */
+    public function testGetHeight()
+    {
+        Assert::assertSame(0, $this->obj->getHeight());
+    }
+
+    /**
+     * @cover Dropdown::hasFocus()
+     */
+    public function testHasFocus()
+    {
+        Assert::assertFalse($this->obj->hasFocus());
     }
 
     public function setItemsProvider()

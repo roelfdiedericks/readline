@@ -104,7 +104,7 @@ class Readline
         $this->height = $height;
 
         $this->output = new Output();
-        $this->dropdown = new NullDropdown($theme, $height);
+        $this->dropdown = $this->factoryDropdown();
         $this->buffer = new Buffer();
         $this->history = new History();
         $this->input = new Input();
@@ -157,8 +157,6 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
-        // substitute null implementation to real
-        $this->dropdown = new Dropdown($this->theme, $this->height);
     }
 
     protected function initKeyHandlers()
@@ -548,7 +546,7 @@ class Readline
     {
         if ($this->completer instanceof CompleteInterface) {
             $items = $this->completer->complete($this->buffer->getCurrent());
-            $this->dropdown->setItems($items);
+            $this->dropdown = $this->factoryDropdown($items);
         }
     }
 
@@ -684,6 +682,16 @@ class Readline
         call_user_func($this->handlers[$key], $this);
 
         return true;
+    }
+
+    /**
+     * @param array $items
+     * @return DropdownInterface
+     */
+    protected function factoryDropdown(array $items = []): DropdownInterface
+    {
+        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+        return empty($items) ? new NullDropdown() : new Dropdown($items, $this->height, $this->theme);
     }
 
 }

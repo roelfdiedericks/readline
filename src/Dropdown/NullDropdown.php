@@ -6,16 +6,8 @@ namespace Ridzhi\Readline\Dropdown;
  * Class NullDropdown
  * @package Ridzhi\Readline\Dropdown
  */
-class NullDropdown extends BaseDropdown
+class NullDropdown implements DropdownInterface
 {
-
-    /**
-     * @param array $items
-     */
-    public function setItems(array $items)
-    {
-
-    }
 
     /**
      * @return string Current chosen
