@@ -1,22 +1,22 @@
 # Readline
-###native readline implementation
+### native readline implementation
 
 ![CompletionGif](example/example.gif)
 
-##Installation
+## Installation
 ```
 composer require ridzhi/readline
 ```
 
-##Controls
-###Line
+## Controls
+### Line
 * Arrow left/right - move cursor left/right
 * Home - move cursor to begin
 * End - move cursor to end
 * Page up/down - navigate by history
 * Tab - complete
 
-###Dropdown
+### Dropdown
 * Arrow up/down - scroll up/down
 * Enter - select
 * Esc - remove focus/move to line context 
