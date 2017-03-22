@@ -204,6 +204,9 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerQuotes() */
         $this->registerCoreKeyHandler('"', 'handlerQuotes');
 
+        /** @uses \Ridzhi\Readline\Readline::handlerClearLine() */
+        $this->registerCoreKeyHandler("\033[3;", 'handlerClearLine');
+
     }
 
     /**
@@ -212,6 +215,14 @@ class Readline
     protected function handlerInput(string $input)
     {
         $this->buffer->insert($input);
+    }
+
+    /**
+     * @param Readline $self
+     */
+    protected function handlerClearLine(Readline $self)
+    {
+        $self->buffer->reset();
     }
 
     /**
