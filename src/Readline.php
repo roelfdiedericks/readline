@@ -85,11 +85,6 @@ class Readline
     protected $lastConsolePos = 0;
 
     /**
-     * @var bool
-     */
-    protected $updateDd = true;
-
-    /**
      * Readline constructor.
      * @param ThemeInterface|null $theme
      * @param int $height
@@ -127,8 +122,13 @@ class Readline
         $this->write($prompt);
 
         do {
-            $this->clear();
-            $this->showBuffer();
+            if ($this->dropdown->hasFocus()) {
+                $this->hideDropdown();
+            } else {
+                $this->clear();
+                $this->showBuffer();
+            }
+
             $this->showDropdown();
 
             $input = $this->input->read($maxUsageLength);
@@ -140,6 +140,7 @@ class Readline
             }
 
             $this->buffer->insert($input);
+            $this->dropdown->reset();
 
         } while (!$this->hasEnter);
 
@@ -300,6 +301,7 @@ class Readline
             $current = Parser::parse($self->buffer->getCurrent())->getCurrent();
             $completion = mb_substr($value, mb_strlen($current));
             $self->buffer->insert($completion);
+            $self->dropdown->reset();
         } else {
             $self->hasEnter = true;
         }
@@ -311,8 +313,6 @@ class Readline
     protected function handlerArrowUp(Readline $self)
     {
         $self->dropdown->scrollUp();
-        //by default after each iteration dd will be update and reset, this stop it
-        $self->updateDd = false;
     }
 
     /**
@@ -322,8 +322,6 @@ class Readline
     protected function handlerArrowDown(Readline $self)
     {
         $self->dropdown->scrollDown();
-        //by default after each iteration dd will be update and reset, this stop it
-        $self->updateDd = false;
     }
 
     /**
@@ -487,10 +485,8 @@ class Readline
 
     protected function showDropdown()
     {
-        if ($this->updateDd) {
+        if (!$this->dropdown->hasFocus()) {
             $this->updateDropdown();
-        } else {
-            $this->updateDd = true;
         }
 
         $width = 0;
@@ -537,7 +533,6 @@ class Readline
     {
         Cursor::save();
         Cursor::down();
-        Cursor::back(9999);
         Erase::down();
         Cursor::restore();
     }
