@@ -85,6 +85,11 @@ class Readline
     protected $lastConsolePos = 0;
 
     /**
+     * @var bool
+     */
+    protected $ddScrolling = false;
+
+    /**
      * Readline constructor.
      * @param ThemeInterface|null $theme
      * @param int $height
@@ -122,10 +127,12 @@ class Readline
         $this->write($prompt);
 
         do {
-            if ($this->dropdown->hasFocus()) {
-                $this->hideDropdown();
+            if ($this->ddScrolling) {
+                $this->clearDropdown();
+                $this->ddScrolling = false;
             } else {
-                $this->clear();
+                $this->updateDropdown();
+                $this->clearAll();
                 $this->showBuffer();
             }
 
@@ -202,7 +209,6 @@ class Readline
     protected function handlerInput(string $input)
     {
         $this->buffer->insert($input);
-        $this->dropdown->reset();
     }
 
     /**
@@ -300,7 +306,6 @@ class Readline
             $current = Parser::parse($self->buffer->getCurrent())->getCurrent();
             $completion = mb_substr($value, mb_strlen($current));
             $self->buffer->insert($completion);
-            $self->dropdown->reset();
         } else {
             $self->hasEnter = true;
         }
@@ -312,6 +317,7 @@ class Readline
     protected function handlerArrowUp(Readline $self)
     {
         $self->dropdown->scrollUp();
+        $self->ddScrolling = true;
     }
 
     /**
@@ -321,6 +327,7 @@ class Readline
     protected function handlerArrowDown(Readline $self)
     {
         $self->dropdown->scrollDown();
+        $self->ddScrolling = true;
     }
 
     /**
@@ -457,7 +464,7 @@ class Readline
         $this->buffer->insert($command);
     }
 
-    protected function clear()
+    protected function clearAll()
     {
         if ($this->lastConsolePos !== 0) {
             $this->cursorLeftWithAutoWrap($this->lastConsolePos);
@@ -484,10 +491,6 @@ class Readline
 
     protected function showDropdown()
     {
-        if (!$this->dropdown->hasFocus()) {
-            $this->updateDropdown();
-        }
-
         $width = 0;
         $view = $this->dropdown->getView($width); //by reference
 
@@ -528,7 +531,7 @@ class Readline
         Cursor::show();
     }
 
-    protected function hideDropdown()
+    protected function clearDropdown()
     {
         Cursor::save();
         Cursor::down();
