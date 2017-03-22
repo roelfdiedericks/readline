@@ -133,14 +133,7 @@ class Readline
 
             $input = $this->input->read($maxUsageLength);
 
-            $isSpecial = $this->tryResolveAsServiceCommand($input) || $this->isUnresolved($input);
-
-            if ($isSpecial) {
-                continue;
-            }
-
-            $this->buffer->insert($input);
-            $this->dropdown->reset();
+            $this->resolveInput($input);
 
         } while (!$this->hasEnter);
 
@@ -204,6 +197,12 @@ class Readline
         /** @uses \Ridzhi\Readline\Readline::handlerQuotes() */
         $this->registerCoreKeyHandler('"', 'handlerQuotes');
 
+    }
+
+    protected function handlerInput(string $input)
+    {
+        $this->buffer->insert($input);
+        $this->dropdown->reset();
     }
 
     /**
@@ -546,18 +545,15 @@ class Readline
     }
 
     /**
-     * @param string $char
-     * @return bool
+     * @param string $input
      */
-    protected function tryResolveAsServiceCommand(string $char): bool
+    protected function resolveInput(string $input)
     {
-        // printable
-        if (!$this->callHandler($char)) {
-            // try non printable
-            return $this->callHandler(ord($char));
-        }
+        $isService = $this->callHandler($input) || $this->callHandler(ord($input));
 
-        return true;
+        if (!$isService && ($isChar = (mb_strlen($input) === 1))) {
+            $this->handlerInput($input);
+        }
     }
 
     /**
@@ -653,15 +649,6 @@ class Readline
         }
 
         return $x;
-    }
-
-    /**
-     * @param string $str
-     * @return bool
-     */
-    protected function isUnresolved(string $str)
-    {
-        return mb_strlen($str) > 1;
     }
 
     /**
