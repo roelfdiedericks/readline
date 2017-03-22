@@ -206,6 +206,9 @@ class Readline
 
     }
 
+    /**
+     * @param string $input
+     */
     protected function handlerInput(string $input)
     {
         $this->buffer->insert($input);
