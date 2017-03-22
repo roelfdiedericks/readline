@@ -194,6 +194,68 @@ class DropdownTest extends TestCase
         Assert::assertAttributeEquals($expectedReverse, 'reverse', $this->obj);
     }
 
+    /**
+     * @cover Dropdown::scrollDown()
+     * @dataProvider scrollDownProvider
+     *
+     * @param int $count
+     * @param int $height
+     * @param int $pos
+     * @param int $offset
+     * @param bool $hasFocus
+     * @param bool $reverse
+     * @param int $expectedPos
+     * @param int $expectedOffset
+     * @param bool $expectedHasFocus
+     * @param bool $expectedReverse
+     */
+    public function testScrollDown(
+        int $count,
+        int $height,
+        int $pos,
+        int $offset,
+        bool $hasFocus,
+        bool $reverse,
+        int $expectedPos,
+        int $expectedOffset,
+        bool $expectedHasFocus,
+        bool $expectedReverse
+    )
+    {
+        $propCount = new \ReflectionProperty(Dropdown::class, 'count');
+        $propCount->setAccessible(true);
+
+        $propHeight = new \ReflectionProperty(Dropdown::class, 'height');
+        $propHeight->setAccessible(true);
+
+        $propPos = new \ReflectionProperty(Dropdown::class, 'pos');
+        $propPos->setAccessible(true);
+
+        $propOffset = new \ReflectionProperty(Dropdown::class, 'offset');
+        $propOffset->setAccessible(true);
+
+        $propHasFocus = new \ReflectionProperty(Dropdown::class, 'hasFocus');
+        $propHasFocus->setAccessible(true);
+
+        $propReverse = new \ReflectionProperty(Dropdown::class, 'reverse');
+        $propReverse->setAccessible(true);
+
+        //set start state
+        $propCount->setValue($this->obj, $count);
+        $propHeight->setValue($this->obj, $height);
+        $propPos->setValue($this->obj, $pos);
+        $propOffset->setValue($this->obj, $offset);
+        $propHasFocus->setValue($this->obj, $hasFocus);
+        $propReverse->setValue($this->obj, $reverse);
+
+        $this->obj->scrollDown();
+
+        Assert::assertAttributeEquals($expectedPos, 'pos', $this->obj);
+        Assert::assertAttributeEquals($expectedOffset, 'offset', $this->obj);
+        Assert::assertAttributeEquals($expectedHasFocus, 'hasFocus', $this->obj);
+        Assert::assertAttributeEquals($expectedReverse, 'reverse', $this->obj);
+    }
+
     public function setItemsProvider()
     {
         $items = $this->getFixtureItems();
@@ -225,6 +287,26 @@ class DropdownTest extends TestCase
             'first' => [10, 5, 0, 0, false, false, 9, 5, true, true],
             'with offset' => [10, 5, 4, 0, true, false, 3, 0, true, false],
             'with offset + border pos' => [10, 5, 5, 6, true, false, 4, 5, true, false],
+        ];
+    }
+
+    public function scrollDownProvider()
+    {
+        return [
+            // int $count,
+            // int $height,
+            // int $pos,
+            // int $offset,
+            // bool $hasFocus,
+            // bool $reverse,
+            // int $expectedPos,
+            // int $expectedOffset,
+            // bool $expectedHasFocus,
+            // bool $expectedReverse
+            'first' => [10, 5, 0, 0, false, false, 0, 0, true, false],
+            'last -> first' => [10, 5, 9, 4, true, true, 0, 0, true, false],
+            'with offset' => [10, 5, 6, 3, true, false, 7, 3, true, false],
+            'with offset + border pos' => [10, 5, 6, 1, true, false, 7, 2, true, false],
         ];
     }
 
