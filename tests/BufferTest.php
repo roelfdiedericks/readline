@@ -23,18 +23,6 @@ class BufferTest extends TestCase
     }
 
     /**
-     * @cover Buffer::setPrompt()
-     */
-    public function testPrompt()
-    {
-        $method = new \ReflectionMethod(Buffer::class, 'setPrompt');
-        $prompt = 'readline >';
-        $method->invoke($this->obj, $prompt);
-
-        Assert::assertAttributeEquals($prompt, 'prompt', $this->obj);
-    }
-
-    /**
      * @cover Buffer::reset()
      */
     public function testReset()

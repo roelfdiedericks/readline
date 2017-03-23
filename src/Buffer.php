@@ -21,19 +21,6 @@ class Buffer
      */
     protected $buffer = '';
 
-    /**
-     * @var string
-     */
-    protected $prompt = '';
-
-    /**
-     * @param string $prompt
-     */
-    public function setPrompt(string $prompt)
-    {
-        $this->prompt = $prompt;
-    }
-
     public function reset()
     {
         $this->buffer = '';

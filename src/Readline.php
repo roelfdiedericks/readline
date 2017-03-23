@@ -60,9 +60,14 @@ class Readline
     protected $dropdown;
 
     /**
-     * @var array map of handlers
+     * @var array map of core handlers
      */
-    protected $handlers;
+    protected $coreHandlers;
+
+    /**
+     * @var array map of custom handlers
+     */
+    protected $customHandlers;
 
     /**
      * @var History
@@ -123,7 +128,6 @@ class Readline
         $maxUsageLength = 4;
         $this->lastConsolePos = 0;
 
-        $this->buffer->setPrompt($prompt);
         $this->write($prompt);
 
         do {
@@ -158,6 +162,16 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
+    }
+
+    public function bind($key, Callable $handler)
+    {
+        $this->customHandlers[$key] = $handler;
+    }
+
+    public function getBuffer()
+    {
+        return $this->buffer;
     }
 
     protected function initKeyHandlers()
@@ -444,12 +458,12 @@ class Readline
     }
 
     /**
-     * @param $value
+     * @param $key
      * @param callable $handler
      */
-    protected function registerKeyHandler($value, Callable $handler)
+    protected function registerKeyHandler($key, Callable $handler)
     {
-        $this->handlers[$value] = $handler;
+        $this->coreHandlers[$key] = $handler;
     }
 
     /**
@@ -566,7 +580,9 @@ class Readline
      */
     protected function resolveInput(string $input)
     {
-        $isService = $this->callHandler($input) || $this->callHandler(ord($input));
+        $isService = $this->callHandler($input) || // core printable
+            $this->callHandler(ord($input)) || // core not printable
+            $this->callHandler($input, false); //user handlers
 
         if (!$isService && ($isChar = (mb_strlen($input) === 1))) {
             $this->handlerInput($input);
@@ -668,17 +684,21 @@ class Readline
         return $x;
     }
 
-    /**
-     * @param $key
-     * @return bool
-     */
-    protected function callHandler($key): bool
+    protected function callHandler($key, $core = true)
     {
-        if (!isset($this->handlers[$key])) {
+        if ($core) {
+            $handlers = $this->coreHandlers;
+            $context = $this;
+        } else {
+            $handlers = $this->customHandlers;
+            $context = $this->getBuffer();
+        }
+
+        if (!isset($handlers[$key])) {
             return false;
         }
 
-        call_user_func($this->handlers[$key], $this);
+        call_user_func($handlers[$key], $context);
 
         return true;
     }
