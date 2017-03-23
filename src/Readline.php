@@ -461,7 +461,7 @@ class Readline
      * @param $key
      * @param callable $handler
      */
-    protected function registerKeyHandler($key, Callable $handler)
+    protected function bindCore($key, Callable $handler)
     {
         $this->coreHandlers[$key] = $handler;
     }
@@ -472,7 +472,7 @@ class Readline
      */
     protected function registerCoreKeyHandler($value, string $handler)
     {
-        $this->registerKeyHandler($value, [$this, $handler]);
+        $this->bindCore($value, [$this, $handler]);
     }
 
     /**
