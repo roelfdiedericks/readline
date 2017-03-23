@@ -164,12 +164,19 @@ class Readline
         $this->completer = $completer;
     }
 
-    public function bind($key, Callable $handler)
+    /**
+     * @param string $key
+     * @param callable $handler
+     */
+    public function bind(string $key, Callable $handler)
     {
         $this->customHandlers[$key] = $handler;
     }
 
-    public function getLine()
+    /**
+     * @return Line
+     */
+    public function getLine(): Line
     {
         return $this->line;
     }
@@ -684,7 +691,12 @@ class Readline
         return $x;
     }
 
-    protected function callHandler($key, $core = true)
+    /**
+     * @param $key
+     * @param bool $core
+     * @return bool
+     */
+    protected function callHandler($key, $core = true): bool
     {
         if ($core) {
             $handlers = $this->coreHandlers;
