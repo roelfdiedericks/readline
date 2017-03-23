@@ -8,7 +8,7 @@ namespace Ridzhi\Readline;
  * Class Buffer
  * @package Ridzhi\Readline
  */
-class Buffer
+class Line
 {
 
     /**
@@ -19,18 +19,18 @@ class Buffer
     /**
      * @var string
      */
-    protected $buffer = '';
+    protected $line = '';
 
-    public function reset()
+    public function clear()
     {
-        $this->buffer = '';
+        $this->line = '';
         $this->cursorToBegin();
     }
 
     /**
      * @return int
      */
-    public function getPos(): int
+    public function getCursorPos(): int
     {
         return $this->pos;
     }
@@ -40,7 +40,7 @@ class Buffer
      */
     public function getLength(): int
     {
-        return mb_strlen($this->buffer);
+        return mb_strlen($this->line);
     }
 
     /**
@@ -48,7 +48,7 @@ class Buffer
      */
     public function getFull(): string
     {
-        return $this->buffer;
+        return $this->line;
     }
 
     /**
@@ -118,8 +118,8 @@ class Buffer
      */
     public function backspace()
     {
-        if ($this->buffer !== '' && $this->pos > 0) {
-            $this->buffer = $this->slice(0, $this->pos - 1) . $this->slice($this->pos);
+        if ($this->line !== '' && $this->pos > 0) {
+            $this->line = $this->slice(0, $this->pos - 1) . $this->slice($this->pos);
             $this->cursorPrev();
         }
     }
@@ -142,7 +142,7 @@ class Buffer
      */
     protected function slice(int $start, $length = null): string
     {
-        return mb_substr($this->buffer, $start, $length);
+        return mb_substr($this->line, $start, $length);
     }
 
     /**
@@ -150,7 +150,7 @@ class Buffer
      */
     protected function insertString(string $value)
     {
-        $this->buffer = $this->getCurrent() . $value . $this->slice($this->pos);
+        $this->line = $this->getCurrent() . $value . $this->slice($this->pos);
     }
 
 }

@@ -45,14 +45,14 @@ class Readline
     protected $completer;
 
     /**
-     * @var Buffer
+     * @var Line
      */
-    protected $buffer;
+    protected $line;
 
     /**
      * @var Input
      */
-    protected $input;
+    protected $reader;
 
     /**
      * @var DropdownInterface
@@ -110,9 +110,9 @@ class Readline
 
         $this->output = new Output();
         $this->dropdown = $this->factoryDropdown();
-        $this->buffer = new Buffer();
+        $this->line = new Line();
         $this->history = new History();
-        $this->input = new Input();
+        $this->reader = new Input();
 
         $this->initKeyHandlers();
     }
@@ -142,16 +142,16 @@ class Readline
 
             $this->showDropdown();
 
-            $input = $this->input->read($maxUsageLength);
+            $input = $this->reader->read($maxUsageLength);
 
             $this->resolveInput($input);
 
         } while (!$this->hasEnter);
 
         $this->hasEnter = false;
-        $line = $this->buffer->getFull();
+        $line = $this->line->getFull();
         $this->history->add($line);
-        $this->buffer->reset();
+        $this->line->clear();
 
         return $line;
     }
@@ -169,9 +169,9 @@ class Readline
         $this->customHandlers[$key] = $handler;
     }
 
-    public function getBuffer()
+    public function getLine()
     {
-        return $this->buffer;
+        return $this->line;
     }
 
     protected function initKeyHandlers()
@@ -228,7 +228,7 @@ class Readline
      */
     protected function handlerInput(string $input)
     {
-        $this->buffer->insert($input);
+        $this->line->insert($input);
     }
 
     /**
@@ -236,7 +236,7 @@ class Readline
      */
     protected function handlerClearLine(Readline $self)
     {
-        $self->buffer->reset();
+        $self->line->clear();
     }
 
     /**
@@ -254,8 +254,8 @@ class Readline
      */
     protected function handlerQuotes(Readline $self)
     {
-        $self->buffer->insert('""');
-        $self->buffer->cursorPrev();
+        $self->line->insert('""');
+        $self->line->cursorPrev();
     }
 
     /**
@@ -279,7 +279,7 @@ class Readline
      */
     protected function handlerBackspace(Readline $self)
     {
-        $self->buffer->backspace();
+        $self->line->backspace();
     }
 
     /**
@@ -287,7 +287,7 @@ class Readline
      */
     protected function handlerDelete(Readline $self)
     {
-        $self->buffer->delete();
+        $self->line->delete();
     }
 
     /**
@@ -295,7 +295,7 @@ class Readline
      */
     protected function handlerHome(Readline $self)
     {
-        $self->buffer->cursorToBegin();
+        $self->line->cursorToBegin();
     }
 
     /**
@@ -303,7 +303,7 @@ class Readline
      */
     protected function handlerEnd(Readline $self)
     {
-        $self->buffer->cursorToEnd();
+        $self->line->cursorToEnd();
     }
 
     /**
@@ -311,7 +311,7 @@ class Readline
      */
     protected function handlerTab(Readline $self)
     {
-        $input = $self->buffer->getCurrent();
+        $input = $self->line->getCurrent();
         $current = Parser::parse($input)->getCurrent();
 
         if ($current !== '') {
@@ -319,7 +319,7 @@ class Readline
             $suffix = $self->getSuffix($current, $data);
 
             if ($suffix !== '') {
-                $self->buffer->insert($suffix);
+                $self->line->insert($suffix);
             }
         }
     }
@@ -331,9 +331,9 @@ class Readline
     {
         if ($self->dropdown->hasFocus()) {
             $value = $self->dropdown->getSelect();
-            $current = Parser::parse($self->buffer->getCurrent())->getCurrent();
+            $current = Parser::parse($self->line->getCurrent())->getCurrent();
             $completion = mb_substr($value, mb_strlen($current));
-            $self->buffer->insert($completion);
+            $self->line->insert($completion);
         } else {
             $self->hasEnter = true;
         }
@@ -363,7 +363,7 @@ class Readline
      */
     protected function handlerArrowLeft(Readline $self)
     {
-        $self->buffer->cursorPrev();
+        $self->line->cursorPrev();
     }
 
     /**
@@ -371,7 +371,7 @@ class Readline
      */
     protected function handlerArrowRight(Readline $self)
     {
-        $self->buffer->cursorNext();
+        $self->line->cursorNext();
     }
 
     /**
@@ -480,7 +480,7 @@ class Readline
      */
     protected function insert(string $value)
     {
-        $this->buffer->insert($value);
+        $this->line->insert($value);
     }
 
     /**
@@ -488,8 +488,8 @@ class Readline
      */
     protected function showHistory(string $command)
     {
-        $this->buffer->reset();
-        $this->buffer->insert($command);
+        $this->line->clear();
+        $this->line->insert($command);
     }
 
     protected function clearAll()
@@ -503,8 +503,8 @@ class Readline
 
     protected function showBuffer()
     {
-        $buffer = $this->buffer->getFull();
-        $this->lastConsolePos = $pos = $this->buffer->getPos();
+        $buffer = $this->line->getFull();
+        $this->lastConsolePos = $pos = $this->line->getCursorPos();
 
         if (empty($buffer)) {
             return;
@@ -570,7 +570,7 @@ class Readline
     protected function updateDropdown()
     {
         if ($this->completer instanceof CompleteInterface) {
-            $items = $this->completer->complete($this->buffer->getCurrent());
+            $items = $this->completer->complete($this->line->getCurrent());
             $this->dropdown = $this->factoryDropdown($items);
         }
     }
@@ -691,7 +691,7 @@ class Readline
             $context = $this;
         } else {
             $handlers = $this->customHandlers;
-            $context = $this->getBuffer();
+            $context = $this->getLine();
         }
 
         if (!isset($handlers[$key])) {

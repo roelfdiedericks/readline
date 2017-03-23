@@ -5,48 +5,48 @@ namespace Ridzhi\Readline\Tests;
 
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
-use Ridzhi\Readline\Buffer;
+use Ridzhi\Readline\Line;
 
 
-class BufferTest extends TestCase
+class LineTest extends TestCase
 {
 
     /**
-     * @var Buffer
+     * @var Line
      */
     protected $obj;
 
     public function setUp()
     {
-        $class = new \ReflectionClass(Buffer::class);
+        $class = new \ReflectionClass(Line::class);
         $this->obj = $class->newInstanceWithoutConstructor();
     }
 
     /**
-     * @cover Buffer::reset()
+     * @cover Line::clear()
      */
-    public function testReset()
+    public function testClear()
     {
-        $method = new \ReflectionMethod(Buffer::class, 'reset');
+        $method = new \ReflectionMethod(Line::class, 'clear');
         $this->obj->insert('command');
         $method->invoke($this->obj);
 
         Assert::assertSame('', $this->obj->getFull());
-        Assert::assertSame(0, $this->obj->getPos());
+        Assert::assertSame(0, $this->obj->getCursorPos());
     }
 
     /**
-     * @cover Buffer::getPos()
+     * @cover Line::getCursorPos()
      */
-    public function testGetPos()
+    public function testGetCursorPos()
     {
         $this->obj->insert('command');
 
-        Assert::assertSame(7, $this->obj->getPos());
+        Assert::assertSame(7, $this->obj->getCursorPos());
     }
 
     /**
-     * @cover Buffer::getFull()
+     * @cover Line::getFull()
      */
     public function testGetFull()
     {
@@ -58,7 +58,7 @@ class BufferTest extends TestCase
     }
 
     /**
-     * @cover Buffer::getCurrent()
+     * @cover Line::getCurrent()
      */
     public function testGetCurrent()
     {
@@ -69,7 +69,7 @@ class BufferTest extends TestCase
     }
 
     /**
-     * @cover Buffer::getLength()
+     * @cover Line::getLength()
      */
     public function testGetLength()
     {
@@ -79,18 +79,18 @@ class BufferTest extends TestCase
     }
 
     /**
-     * @cover Buffer::cursorToBegin()
+     * @cover Line::cursorToBegin()
      */
     public function cursorToBegin()
     {
         $this->obj->insert('command');
         $this->obj->cursorToBegin();
 
-        Assert::assertSame(0, $this->obj->getPos());
+        Assert::assertSame(0, $this->obj->getCursorPos());
     }
 
     /**
-     * @cover Buffer::cursorToEnd()
+     * @cover Line::cursorToEnd()
      */
     public function testCursorToEnd()
     {
@@ -98,7 +98,7 @@ class BufferTest extends TestCase
         $this->obj->cursorPrev(3);
         $this->obj->cursorToEnd();
 
-        Assert::assertSame(7, $this->obj->getPos());
+        Assert::assertSame(7, $this->obj->getCursorPos());
     }
 
     /**
@@ -106,7 +106,7 @@ class BufferTest extends TestCase
      * @param int $steps
      * @param int $expected
      *
-     * @cover Buffer::cursorPrev()
+     * @cover Line::cursorPrev()
      * @dataProvider cursorPrevProvider
      */
     public function testCursorPrev(string $insert, int $steps, int $expected)
@@ -114,7 +114,7 @@ class BufferTest extends TestCase
         $this->obj->insert($insert);
         $this->obj->cursorPrev($steps);
 
-        Assert::assertSame($expected, $this->obj->getPos());
+        Assert::assertSame($expected, $this->obj->getCursorPos());
     }
 
 
@@ -125,19 +125,19 @@ class BufferTest extends TestCase
      * @param bool $extend
      * @param int $expected
      *
-     * @cover Buffer::cursorNext()
+     * @cover Line::cursorNext()
      * @dataProvider cursorNextProvider
      */
     public function testCursorNext(string $insert, int $start, int $steps, bool $extend, int $expected)
     {
         $this->obj->insert($insert);
-        $pos = new \ReflectionProperty(Buffer::class, 'pos');
+        $pos = new \ReflectionProperty(Line::class, 'pos');
         $pos->setAccessible(true);
         $pos->setValue($this->obj, $start);
 
         $this->obj->cursorNext($steps, $extend);
 
-        Assert::assertSame($expected, $this->obj->getPos());
+        Assert::assertSame($expected, $this->obj->getCursorPos());
     }
 
     /**
@@ -148,19 +148,19 @@ class BufferTest extends TestCase
      * @param string $expectedBuffer
      * @internal param int $expected
      *
-     * @cover Buffer::cursorNext()
+     * @cover Line::cursorNext()
      * @dataProvider cursorNextExtendProvider
      */
     public function testCursorNextExtend(string $insert, int $start, int $steps, int $expectedPos, string $expectedBuffer)
     {
         $this->obj->insert($insert);
-        $pos = new \ReflectionProperty(Buffer::class, 'pos');
+        $pos = new \ReflectionProperty(Line::class, 'pos');
         $pos->setAccessible(true);
         $pos->setValue($this->obj, $start);
 
         $this->obj->cursorNext($steps, true);
 
-        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedPos, $this->obj->getCursorPos());
         Assert::assertSame($expectedBuffer, $this->obj->getFull());
     }
 
@@ -170,7 +170,7 @@ class BufferTest extends TestCase
      * @param int $expectedPos
      * @param string $expectedBuffer
      *
-     * @cover Buffer::backspace()
+     * @cover Line::backspace()
      * @dataProvider backspaceProvider()
      */
     public function testBackspace(string $insert, int $offset, int $expectedPos, string $expectedBuffer)
@@ -179,7 +179,7 @@ class BufferTest extends TestCase
         $this->obj->cursorPrev($offset);
         $this->obj->backspace();
 
-        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedPos, $this->obj->getCursorPos());
         Assert::assertSame($expectedBuffer, $this->obj->getFull());
     }
 
@@ -189,7 +189,7 @@ class BufferTest extends TestCase
      * @param int $expectedPos
      * @param string $expectedBuffer
      *
-     * @cover Buffer::delete()
+     * @cover Line::delete()
      * @dataProvider deleteProvider
      */
     public function testDelete(string $insert, int $offset, int $expectedPos, string $expectedBuffer)
@@ -198,16 +198,16 @@ class BufferTest extends TestCase
         $this->obj->cursorPrev($offset);
         $this->obj->delete();
 
-        Assert::assertSame($expectedPos, $this->obj->getPos());
+        Assert::assertSame($expectedPos, $this->obj->getCursorPos());
         Assert::assertSame($expectedBuffer, $this->obj->getFull());
     }
 
     /**
-     * @cover Buffer::slice()
+     * @cover Line::slice()
      */
     public function testSlice()
     {
-        $method = new \ReflectionMethod(Buffer::class, 'slice');
+        $method = new \ReflectionMethod(Line::class, 'slice');
         $method->setAccessible(true);
 
         $this->obj->insert('command');
@@ -221,12 +221,12 @@ class BufferTest extends TestCase
      * @param int $offset
      * @param string $expected
      *
-     * @cover Buffer::insertString()
+     * @cover Line::insertString()
      * @dataProvider insertStringProvider
      */
     public function testInsertString(string $value, string $insert, int $offset, string $expected)
     {
-        $method = new \ReflectionMethod(Buffer::class, 'insertString');
+        $method = new \ReflectionMethod(Line::class, 'insertString');
         $method->setAccessible(true);
         $this->obj->insert($value);
         $this->obj->cursorPrev($offset);
