@@ -17,7 +17,12 @@ class Dropdown implements DropdownInterface
     protected $theme;
 
     /**
-     * @var int height of dropdown
+     * @var int actual height
+     */
+    protected $height = 0;
+
+    /**
+     * @var int max height of dropdown
      */
     protected $maxHeight;
 
@@ -50,11 +55,6 @@ class Dropdown implements DropdownInterface
      * @var bool if select someone
      */
     protected $hasFocus = false;
-
-    /**
-     * @var int actual height
-     */
-    protected $height = 0;
 
 
     /**
@@ -90,7 +90,6 @@ class Dropdown implements DropdownInterface
     public function getView(& $width = 0): string
     {
         $dict = $this->getCurrentDict();
-        $output = '';
         $widthItem = max(array_map('mb_strlen', $dict));
         $scrollbar = ' ';
         $lineWidth = $width = mb_strlen($this->getViewItem('', $widthItem) . $scrollbar);
@@ -98,6 +97,7 @@ class Dropdown implements DropdownInterface
 
         $relativePos = $this->pos - $this->offset;
         $posScroll = $this->getPosScroll();
+        $output = '';
 
         foreach ($dict as $lineNumber => $lineValue) {
             $textStyle = (!$this->hasFocus() || $lineNumber !== $relativePos) ? $this->theme->getText() : $this->theme->getTextActive();
