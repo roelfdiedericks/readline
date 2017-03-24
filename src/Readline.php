@@ -77,7 +77,7 @@ class Readline
     /**
      * @var bool
      */
-    protected $hasEnter = false;
+    protected $pushedEnter = false;
 
     /**
      * @var int Usage for eol tracking
@@ -146,9 +146,9 @@ class Readline
 
             $this->resolveInput($input);
 
-        } while (!$this->hasEnter);
+        } while (!$this->pushedEnter);
 
-        $this->hasEnter = false;
+        $this->pushedEnter = false;
         $line = $this->line->getFull();
         $this->history->add($line);
         $this->line->clear();
@@ -342,7 +342,7 @@ class Readline
             $completion = mb_substr($value, mb_strlen($current));
             $self->line->insert($completion);
         } else {
-            $self->hasEnter = true;
+            $self->pushedEnter = true;
         }
     }
 
