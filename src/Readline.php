@@ -137,10 +137,10 @@ class Readline
             } else {
                 $this->updateDropdown();
                 $this->clearAll();
-                $this->showLine();
+                $this->renderLine();
             }
 
-            $this->showDropdown();
+            $this->renderDropdown();
 
             $input = $this->reader->read($maxUsageLength);
 
@@ -508,7 +508,7 @@ class Readline
         Erase::down();
     }
 
-    protected function showLine()
+    protected function renderLine()
     {
         $line = $this->line->getFull();
         $this->lastConsolePos = $this->line->getCursorPos();
@@ -523,7 +523,7 @@ class Readline
         $this->cursorRightWithAutoWrap($this->lastConsolePos);
     }
 
-    protected function showDropdown()
+    protected function renderDropdown()
     {
         $width = 0;
         $view = $this->dropdown->getView($width); //by reference
