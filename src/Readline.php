@@ -137,7 +137,7 @@ class Readline
             } else {
                 $this->updateDropdown();
                 $this->clearAll();
-                $this->showBuffer();
+                $this->showLine();
             }
 
             $this->showDropdown();
@@ -508,20 +508,19 @@ class Readline
         Erase::down();
     }
 
-    protected function showBuffer()
+    protected function showLine()
     {
-        $buffer = $this->line->getFull();
-        $this->lastConsolePos = $pos = $this->line->getCursorPos();
+        $line = $this->line->getFull();
+        $this->lastConsolePos = $this->line->getCursorPos();
 
-        if (empty($buffer)) {
+        if (empty($line)) {
             return;
         }
 
-        $this->write($buffer);
-        $leftOffset = mb_strlen($buffer);
+        $this->write($line);
 
-        $this->cursorLeftWithAutoWrap($leftOffset);
-        $this->cursorRightWithAutoWrap($pos);
+        $this->cursorLeftWithAutoWrap(mb_strlen($line));
+        $this->cursorRightWithAutoWrap($this->lastConsolePos);
     }
 
     protected function showDropdown()
