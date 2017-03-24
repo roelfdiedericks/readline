@@ -93,7 +93,7 @@ class Dropdown implements DropdownInterface
         $output = '';
         $widthItem = max(array_map('mb_strlen', $dict));
         $scrollbar = ' ';
-        $lineWidth = $width = strlen($this->getViewItem('', $widthItem) . $scrollbar);
+        $lineWidth = $width = mb_strlen($this->getViewItem('', $widthItem) . $scrollbar);
         $lf = $this->getLF($lineWidth);
 
         $relativePos = $this->pos - $this->offset;
