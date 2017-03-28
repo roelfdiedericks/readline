@@ -73,3 +73,20 @@ $readline->bind("(", function (\Ridzhi\Readline\Line $line) {
     $line->cursorPrev();
 });
 ```
+
+## Theming
+For custom stylish use `ThemeInterface` implementation.
+```php
+// dark theme file
+
+class DarkTheme implements Ridzhi\Readline\Dropdown\ThemeInterface
+{
+}
+
+// console app file
+
+// ThemeInterface implements
+$readline = new \Ridzhi\Readline\Readline(new DarkTheme());
+```
+
+Also you can use `CustomTheme` class, it has ready setters API for you design.
