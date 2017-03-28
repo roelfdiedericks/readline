@@ -1,6 +1,8 @@
 <?php
 
-namespace Ridzhi\Readline\Dropdown;
+namespace Ridzhi\Readline\Dropdown\Themes;
+
+use Ridzhi\Readline\Dropdown\ThemeInterface;
 
 
 /**
@@ -10,7 +12,7 @@ namespace Ridzhi\Readline\Dropdown;
  * Class DropdownStyle
  * @package Ridzhi\Readline
  */
-class Theme implements ThemeInterface
+class CustomTheme implements ThemeInterface
 {
 
     /**
