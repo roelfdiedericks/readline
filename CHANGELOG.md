@@ -1,4 +1,4 @@
-## 0.1.1
+## 0.2.0
 * add CHANGELOG file
 * refactoring
 * add theming notes
