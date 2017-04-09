@@ -25,6 +25,11 @@ class Readline
 {
 
     /**
+     * @var string
+     */
+    protected $prompt = 'readline: ';
+
+    /**
      * @var ThemeInterface
      */
     protected $theme;
@@ -121,14 +126,18 @@ class Readline
      * @param string $prompt
      * @return string
      */
-    public function read(string $prompt): string
+    public function read(string $prompt = ''): string
     {
+        if ($prompt !== '') {
+            $this->setPrompt($prompt);
+        }
+
         Console::advancedInteraction();
 
         $maxUsageLength = 4;
         $this->lastConsolePos = 0;
 
-        $this->write($prompt);
+        $this->write($this->prompt);
 
         do {
             if ($this->ddScrolling) {
@@ -162,6 +171,14 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
+    }
+
+    /**
+     * @param string $prompt
+     */
+    public function setPrompt(string $prompt)
+    {
+        $this->prompt = $prompt;
     }
 
     /**
