@@ -100,6 +100,11 @@ class Readline
     protected $ddScrolling = false;
 
     /**
+     * @var Callable
+     */
+    protected $completeFilter;
+
+    /**
      * Readline constructor.
      * @param ThemeInterface|null $theme
      * @param int $height
@@ -171,6 +176,14 @@ class Readline
     public function setCompleter(CompleteInterface $completer)
     {
         $this->completer = $completer;
+    }
+
+    /**
+     * @param Callable $completeFilter
+     */
+    public function setCompleteFilter(Callable $completeFilter)
+    {
+        $this->completeFilter = $completeFilter;
     }
 
     /**
@@ -594,6 +607,11 @@ class Readline
     {
         if ($this->completer instanceof CompleteInterface) {
             $items = $this->completer->complete($this->line->getCurrent());
+
+            if(is_callable($this->completeFilter)) {
+                $items = array_filter($items, $this->completeFilter);
+            }
+
             $this->dropdown = $this->factoryDropdown($items);
         }
     }
