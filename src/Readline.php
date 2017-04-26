@@ -4,11 +4,12 @@ namespace Ridzhi\Readline;
 
 use CLI\Cursor;
 use CLI\Erase;
-use Hoa\Console\Console;
 use Hoa\Console\Cursor as HoaCursor;
 use Hoa\Console\Input;
 use Hoa\Console\Output;
 use Hoa\Console\Window;
+use Hoa\Stream\IStream\In;
+use Hoa\Stream\IStream\Out;
 use Ridzhi\Readline\Dropdown\Dropdown;
 use Ridzhi\Readline\Dropdown\DropdownInterface;
 use Ridzhi\Readline\Dropdown\NullDropdown;
@@ -40,9 +41,14 @@ class Readline
     protected $height;
 
     /**
-     * @var Output
+     * @var In
      */
-    protected $output;
+    protected $reader;
+
+    /**
+     * @var Out
+     */
+    protected $writer;
 
     /**
      * @var CompleteInterface
@@ -53,11 +59,6 @@ class Readline
      * @var Line
      */
     protected $line;
-
-    /**
-     * @var Input
-     */
-    protected $reader;
 
     /**
      * @var DropdownInterface
@@ -118,13 +119,15 @@ class Readline
         $this->theme = $theme;
         $this->height = $height;
 
-        $this->output = new Output();
+        $this->reader = new Input();
+        $this->writer = new Output();
+
         $this->dropdown = $this->factoryDropdown();
         $this->line = new Line();
         $this->history = new History();
-        $this->reader = new Input();
 
         $this->initKeyHandlers();
+//
     }
 
     /**
@@ -136,8 +139,6 @@ class Readline
         if ($prompt !== '') {
             $this->setPrompt($prompt);
         }
-
-        Console::advancedInteraction();
 
         $maxUsageLength = 4;
         $this->lastConsolePos = 0;
@@ -209,6 +210,14 @@ class Readline
     public function getLine(): Line
     {
         return $this->line;
+    }
+
+    /**
+     * @return Out
+     */
+    public function getWriter(): Out
+    {
+        return $this->writer;
     }
 
     protected function initKeyHandlers()
@@ -584,7 +593,7 @@ class Readline
             Cursor::back($diffX);
         }
 
-        $this->output->writeAll($view);
+        $this->writer->writeAll($view);
 
         Cursor::restore();
 
@@ -608,7 +617,7 @@ class Readline
         if ($this->completer instanceof CompleteInterface) {
             $items = $this->completer->complete($this->line->getCurrent());
 
-            if(is_callable($this->completeFilter)) {
+            if (is_callable($this->completeFilter)) {
                 $items = array_filter($items, $this->completeFilter);
             }
 
@@ -658,7 +667,7 @@ class Readline
             return;
         }
 
-        $this->output->writeAll($value);
+        $this->writer->writeAll($value);
 
         $x = $this->getX();
 

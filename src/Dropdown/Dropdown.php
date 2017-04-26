@@ -1,6 +1,7 @@
 <?php
 
 namespace Ridzhi\Readline\Dropdown;
+use Ridzhi\Readline\Console;
 
 /**
  * Class Dropdown
@@ -102,9 +103,9 @@ class Dropdown implements DropdownInterface
         foreach ($dict as $lineNumber => $lineValue) {
             $textStyle = (!$this->hasFocus() || $lineNumber !== $relativePos) ? $this->theme->getText() : $this->theme->getTextActive();
             $line = $this->getViewItem($lineValue, $widthItem);
-            $output .= self::ansiFormat($line, $textStyle);
+            $output .= Console::format($line, $textStyle);
             $scrollbarStyle = ($lineNumber !== $posScroll) ? $this->theme->getScrollbar() : $this->theme->getSlider();
-            $output .= self::ansiFormat($scrollbar, $scrollbarStyle) . $lf;
+            $output .= Console::format($scrollbar, $scrollbarStyle) . $lf;
         }
 
         return $output;
@@ -263,18 +264,6 @@ class Dropdown implements DropdownInterface
         }
 
         return $pos;
-    }
-
-    /**
-     * @param string $string
-     * @param array $format
-     * @return string
-     */
-    protected static function ansiFormat(string $string, array $format = []): string
-    {
-        $code = implode(';', $format);
-
-        return "\033[0m" . ($code !== '' ? "\033[" . $code . 'm' : '') . $string . "\033[0m";
     }
 
 }
