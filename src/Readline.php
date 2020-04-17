@@ -507,7 +507,7 @@ class Readline
      * @param $key
      * @param callable $handler
      */
-    protected function bindCore($key, Callable $handler)
+    public function bindCore($key, Callable $handler)
     {
         $this->coreHandlers[$key] = $handler;
     }
