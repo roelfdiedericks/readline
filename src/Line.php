@@ -153,4 +153,15 @@ class Line
         $this->line = $this->getCurrent() . $value . $this->slice($this->pos);
     }
 
+    /**
+     * @param string $value
+     */
+    public function setLine(string $value)
+    {
+        $this->line = $value;
+        $this->cursorToEnd();
+    }
+
+
+
 }

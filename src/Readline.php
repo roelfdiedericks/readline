@@ -140,10 +140,14 @@ class Readline
             $this->setPrompt($prompt);
         }
 
-        $maxUsageLength = 4;
+        $maxUsageLength = 1;
         $this->lastConsolePos = 0;
 
         $this->write($this->prompt);
+
+        //this is a huge hack, but short commands dont show the prompt without the echo??
+        $this->setPrompt($prompt." ");
+        echo " ";
 
         do {
             if ($this->ddScrolling) {
@@ -198,7 +202,7 @@ class Readline
     /**
      * @return string 
      */
-    public function getPrompt(string $prompt)
+    public function getPrompt()
     {
         return $this->prompt;
     }
@@ -555,7 +559,7 @@ class Readline
         Erase::down();
     }
 
-    protected function renderLine()
+    public function renderLine()
     {
         $line = $this->line->getFull();
         $this->lastConsolePos = $this->line->getCursorPos();
