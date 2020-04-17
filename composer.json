@@ -1,12 +1,12 @@
 {
-    "name": "ridzhi/readline",
-    "description": "native readline implementation",
+    "name": "rodent/readline",
+    "description": "native readline implementation forked from ridzhi/readline",
     "keywords": ["readline", "autocomplete"],
     "license": "MIT",
     "authors": [
         {
-            "name": "Danila Stivrinsh",
-            "email": "danilaridzhi@gmail.com"
+            "name": "Roelf Diedericks",
+            "email": "roelf.diedericks@gmail.com"
         }
     ],
     "autoload": {
