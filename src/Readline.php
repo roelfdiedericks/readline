@@ -516,7 +516,7 @@ class Readline
      * @param int|string $value ASCII code| String value
      * @param string $handler Function name
      */
-    protected function registerCoreKeyHandler($value, string $handler)
+    public function registerCoreKeyHandler($value, string $handler)
     {
         $this->bindCore($value, [$this, $handler]);
     }
