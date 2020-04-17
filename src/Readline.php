@@ -196,6 +196,14 @@ class Readline
     }
 
     /**
+     * @return string 
+     */
+    public function getPrompt(string $prompt)
+    {
+        return $this->prompt;
+    }
+
+    /**
      * @param string $key
      * @param callable $handler
      */
